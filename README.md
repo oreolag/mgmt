@@ -34,7 +34,7 @@ curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo 
 
 Additional Linux distributions may work but are not officially validated yet.
 
-### Testing the installation
+### Verify the Installation
 
 Verify your installation by running the test playbook on the local server:
 
@@ -44,6 +44,16 @@ cd /opt/mgmt && ./ansible-play.sh test local
 
 ![Successful Ansible installation test](test.png)
 <!-- *The test displays **Ansible is working!**, your server's hostname, operating system, and connection type. It requires no sudo access and makes no changes to your system. A successful run ends with `failed=0` and `unreachable=0` in the recap.* -->
+
+## Updating Collections
+
+Run the following command to update the Oreol Ansible Collection in the project's `collections` directory to the latest version from its `main` branch:
+
+```bash
+cd /opt/mgmt && sudo ./collections-update.sh
+```
+
+The default installation is owned by root, so updating it requires `sudo`.
 
 ## Citation
 
