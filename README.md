@@ -42,9 +42,6 @@ Verify your installation by running the test playbook on the local server:
 cd /opt/mgmt && ./ansible-play.sh test local
 ```
 
-![Successful Ansible installation test](test.png)
-<!-- *The test displays **Ansible is working!**, your server's hostname, operating system, and connection type. It requires no sudo access and makes no changes to your system. A successful run ends with `failed=0` and `unreachable=0` in the recap.* -->
-
 ## Updating Collections
 
 Run the following command to upgrade Oreol Ansible Collection into the project's `collections` directory. This fetches the latest Oreol Ansible Collection from its `main` branch:
@@ -54,6 +51,12 @@ cd /opt/mgmt && sudo ./collections-update.sh
 ```
 
 The default installation is owned by root, so updating it requires `sudo`.
+
+## Examples
+
+The script ansible-play autocompletes playbooks names from the installed collection as well as inventory names from hosts.
+
+![](examples.gif)
 
 ## Citation
 
