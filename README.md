@@ -19,7 +19,7 @@
 
 `mgmt` simplifies software installation and low-level system configuration across heterogeneous compute clusters and remote servers. Built on the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) it brings together your inventory, variables, and configuration management database (CMDB).
 
-When [Oreol CLI](https://github.com/oreolag/cli) is installed on a remote server, `mgmt` can also be invoked directly through odev.
+When [Oreol CLI](https://github.com/oreolag/cli) is installed on a remote server, `mgmt` can also be invoked directly through `odev`.
 
 ## Using mgmt
 
