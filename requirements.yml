@@ -1,0 +1,5 @@
+---
+collections:
+  - name: https://github.com/oreolag/ansible-collection.git
+    type: git
+    version: main

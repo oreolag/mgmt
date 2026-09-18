@@ -1,0 +1,21 @@
+---
+ansible_user: root
+ansible_become_method: sudo
+
+tailscale:
+  tailnet_id: TGf3dy2rUz11CNTRL
+  tailnet_dns_name: tailaaf611.ts.net
+
+users:
+  odev_admins:
+    - jmoya82
+    - javier
+  odev_developers:
+    - jmoya82
+    - javier  
+  odev_users:
+    - jmoya82
+    - javier  
+  passwordless_sudo:
+    - jmoya82
+    - javier
