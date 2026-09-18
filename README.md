@@ -17,6 +17,8 @@
   </p>
 </h1>
 
+`mgmt` is the management toolkit for operating your heterogeneous accelerated compute cluster. It brings together your cluster’s inventory, variables, and configuration management database (CMDB) with the Oreol Ansible Collection, providing a consistent foundation for configuring and managing your cluster.
+
 ## Installation
 Run the following command on your Linux host (see [Supported Platforms](#supported-platforms)):
 
