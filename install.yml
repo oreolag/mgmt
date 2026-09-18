@@ -69,7 +69,7 @@
             name:
               - git
               - ansible
-              #- bash-completion
+              - bash-completion
             state: present
             update_cache: true
 
@@ -129,14 +129,14 @@
         #    mode: "0755"
 
         # Install completion (system-wide)
-        #- name: Install bash completion for mgmt
-        #  ansible.builtin.copy:
-        #    src: "{{ mgmt_remote_path }}/mgmt/mgmt_completion.sh"
-        #    dest: "/usr/share/bash-completion/completions/mgmt"
-        #    remote_src: true
-        #    owner: root
-        #    group: root
-        #    mode: "0644"
+        - name: Install bash completion for ansible-play.sh
+          ansible.builtin.copy:
+            src: "{{ mgmt_remote_path }}/mgmt/ansible-play-completion.bash"
+            dest: "/usr/share/bash-completion/completions/ansible-play.sh"
+            remote_src: true
+            owner: root
+            group: root
+            mode: "0644"
 
         # PATH for all users
         #- name: Add mgmt to PATH (system-wide)
