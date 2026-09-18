@@ -16,3 +16,35 @@
     <a href="https://github.com/oreolag/mgmt/stargazers"><img src="https://img.shields.io/github/stars/oreolag/mgmt?style=flat" alt="GitHub stars" /></a>
   </p>
 </h1>
+
+## Installation
+Run the following command on your Linux host (see [Supported Platforms](#supported-platforms)):
+
+```bash
+curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo bash
+```
+
+### Supported Platforms
+`mgmt` currently supports Ubuntu-based Linux distributions. Validated environments include:
+
+- Ubuntu
+- NVIDIA DGX
+
+Additional Linux distributions may work but are not officially validated yet.
+
+## Citation
+
+[![ACM](https://img.shields.io/badge/ACM-10.1145%2F3805700-green)](https://doi.org/10.1145/3805700)
+
+If you use `mgmt` in your research, development, or publications, please cite the following reference:
+
+```bibtex
+@article{moya2026hacc,
+  author    = {Javier Moya and Matthias Gabathuler and Mario Ruiz and Gustavo Alonso},
+  title     = {A Development Platform for Managed Heterogeneous Accelerated Compute Clusters: A Case Study on ETH Zurich’s AMD HACC},
+  journal   = {ACM Transactions on Reconfigurable Technology and Systems},
+  year      = {2026},
+  doi       = {10.1145/3805700},
+  url       = {https://doi.org/10.1145/3805700}
+}
+```
