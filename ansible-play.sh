@@ -5,6 +5,7 @@ usage() {
     echo "Usage: $0 <playbook> <hosts> [flags] [ansible options...]"
     echo "Example: $0 passwordless_sudo_groupadd spark update --ask-become-pass"
     echo "Install Oreol CLI: $0 cli_install local repo --ask-become-pass"
+    echo "For cli_install, set CLI_LOCAL_PATH to your local CLI checkout first."
     echo "Flags are comma-separated variable names set to true (e.g. update,validate)."
 }
 if [[ ${1:-} == --help || ${1:-} == -h ]]; then
@@ -22,6 +23,26 @@ playbook="${playbook%.yml}"
 playbook="${playbook%.yaml}"
 playbook="${playbook//-/_}"
 if [[ $playbook == cli_install ]]; then
+    cli_path_file="$cluster_dir/CLI_LOCAL_PATH"
+    if [[ ! -r $cli_path_file ]]; then
+        echo "Please update CLI_LOCAL_PATH." >&2
+        echo "Enter the absolute path to your local CLI checkout in $cli_path_file." >&2
+        exit 1
+    fi
+    cli_local_path=$(cat -- "$cli_path_file")
+    # Trim surrounding whitespace, matching the inventory's file lookup.
+    cli_local_path="${cli_local_path#"${cli_local_path%%[![:space:]]*}"}"
+    cli_local_path="${cli_local_path%"${cli_local_path##*[![:space:]]}"}"
+    if [[ -z $cli_local_path ]]; then
+        echo "Please update CLI_LOCAL_PATH." >&2
+        echo "Enter the absolute path to your local CLI checkout in $cli_path_file." >&2
+        exit 1
+    fi
+    if [[ $cli_local_path != /* || ! -d $cli_local_path ]]; then
+        echo "Please update CLI_LOCAL_PATH." >&2
+        echo "The path must be an existing absolute directory on the machine running Ansible." >&2
+        exit 1
+    fi
     playbook="$cluster_dir/cli_install.yml"
     if [[ ! -f $playbook ]]; then
         echo "CLI installer is missing. Run: git submodule update --init --recursive" >&2
