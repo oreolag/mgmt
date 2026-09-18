@@ -3,7 +3,7 @@ ansible_user: root
 ansible_become_method: sudo
 
 cli:
-  local_path: "{{ inventory_dir }}/submodules/cli"
+  local_path: "{{ lookup('ansible.builtin.file', inventory_dir ~ '/CLI_LOCAL_PATH') | trim }}"
 
 tailscale:
   tailnet_id: TGf3dy2rUz11CNTRL
