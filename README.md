@@ -17,7 +17,7 @@
   </p>
 </h1>
 
-`mgmt` simplifies software installation and low-level system configuration across heterogeneous compute clusters and remote servers. Built on the Oreol Ansible Collection, it brings together your inventory, variables, and configuration management database (CMDB) to consistently deploy software such as [Oreol CLI](https://github.com/oreolag/cli) and vLLM and manage the underlying systems.
+`mgmt` simplifies software installation and low-level system configuration across heterogeneous compute clusters and remote servers. Built on the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) it brings together your inventory, variables, and configuration management database (CMDB) to consistently deploy software such as [Oreol CLI](https://github.com/oreolag/cli) and vLLM and manage the underlying systems.
 
 ## Installation
 Run the following command on your Linux host (see [Supported Platforms](#supported-platforms)):
