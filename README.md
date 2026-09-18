@@ -43,7 +43,7 @@ cd /opt/mgmt && ./ansible-play.sh test local
 ```
 
 ![Successful Ansible installation test](test.png)
-*The test displays **Ansible is working!**, your server's hostname, operating system, and connection type. It requires no sudo access and makes no changes to your system. A successful run ends with `failed=0` and `unreachable=0` in the recap.*
+<!-- *The test displays **Ansible is working!**, your server's hostname, operating system, and connection type. It requires no sudo access and makes no changes to your system. A successful run ends with `failed=0` and `unreachable=0` in the recap.* -->
 
 ## Citation
 
