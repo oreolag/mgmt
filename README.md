@@ -47,7 +47,7 @@ cd /opt/mgmt && ./ansible-play.sh test local
 
 ## Updating Collections
 
-Run the following command to update the Oreol Ansible Collection in the project's `collections` directory to the latest version from its `main` branch:
+Run the following command to upgrade Oreol Ansible Collection into the project's `collections` directory. This fetches the latest Oreol Ansible Collection from its `main` branch:
 
 ```bash
 cd /opt/mgmt && sudo ./collections-update.sh
