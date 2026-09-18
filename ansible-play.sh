@@ -4,6 +4,7 @@ set -euo pipefail
 usage() {
     echo "Usage: $0 <playbook> <hosts> [flags] [ansible options...]"
     echo "Example: $0 passwordless_sudo_groupadd spark update --ask-become-pass"
+    echo "Install Oreol CLI: $0 cli_install local repo --ask-become-pass"
     echo "Flags are comma-separated variable names set to true (e.g. update,validate)."
 }
 if [[ ${1:-} == --help || ${1:-} == -h ]]; then
@@ -20,12 +21,20 @@ playbook="${1##*/}"
 playbook="${playbook%.yml}"
 playbook="${playbook%.yaml}"
 playbook="${playbook//-/_}"
-if [[ $playbook != oreol.mgmt.* ]]; then
-    playbook="oreol.mgmt.$playbook"
-fi
-if [[ ! $playbook =~ ^oreol\.mgmt\.[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-    echo "Invalid collection playbook name: $playbook" >&2
-    exit 1
+if [[ $playbook == cli_install ]]; then
+    playbook="$cluster_dir/cli_install.yml"
+    if [[ ! -f $playbook ]]; then
+        echo "CLI installer is missing. Run: git submodule update --init --recursive" >&2
+        exit 1
+    fi
+else
+    if [[ $playbook != oreol.mgmt.* ]]; then
+        playbook="oreol.mgmt.$playbook"
+    fi
+    if [[ ! $playbook =~ ^oreol\.mgmt\.[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+        echo "Invalid collection playbook name: $playbook" >&2
+        exit 1
+    fi
 fi
 target=$2
 shift 2

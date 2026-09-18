@@ -12,6 +12,9 @@ _oreol_ansible_play_complete() {
 
     case $COMP_CWORD in
         1)
+            if [[ -f $cluster_dir/cli_install.yml && cli_install == "$current"* ]]; then
+                COMPREPLY+=(cli_install)
+            fi
             for file in "$cluster_dir"/collections/ansible_collections/oreol/mgmt/playbooks/*; do
                 [[ -f $file ]] || continue
                 case $file in
@@ -20,6 +23,10 @@ _oreol_ansible_play_complete() {
                     *) continue ;;
                 esac
                 [[ $name =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] || continue
+                # The local installer owns the short cli_install name.
+                if [[ $name == cli_install && $current != oreol.mgmt.* ]]; then
+                    continue
+                fi
                 if [[ $current == oreol.mgmt.* ]]; then
                     name="oreol.mgmt.$name"
                 fi
