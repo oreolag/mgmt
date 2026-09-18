@@ -23,9 +23,7 @@ When [Oreol CLI](https://github.com/oreolag/cli) is installed on a remote server
 
 ## Using mgmt
 
-For Oreol-managed clusters, Oreol provides a customized repository for co-managing your infrastructure under your management agreement.
-
-For independently managed clusters and remote servers, follow the installation instructions below to get started.
+For Oreol-managed clusters, Oreol provides a customized repository for co-managing your infrastructure under your management agreement. For independently managed clusters and remote servers, follow the installation instructions below to get started.
 
 ## Installation
 Run the following command on your Linux host (see [Supported Platforms](#supported-platforms)):
