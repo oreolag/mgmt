@@ -60,7 +60,7 @@ The default installation is owned by root, so updating it requires `sudo`.
 
 ## Examples
 
-`ansible-play.sh` supports Tab completion for playbook names from the installed collection and inventory group names from `hosts`.
+`ansible-play.sh` supports Tab completion for playbook names from [Oreol’s Ansible Collection](https://github.com/oreolag/ansible-collection) and inventory group names from `hosts`.
 
 ![](examples.gif)
 
