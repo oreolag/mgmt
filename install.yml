@@ -1,0 +1,289 @@
+---
+
+- hosts: all
+  become: true
+  become_method: community.general.sudosu
+  become_user: root
+  ignore_unreachable: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    mgmt_remote_path: /opt
+    mgmt_repository: "https://github.com/oreolag/mgmt.git"
+    # control variables
+    #delete: false
+    #examine: false
+    #get: false
+    #ifconfig: false
+    #install: false
+    #main: false
+    #new: false
+    #program: false
+    #run: false
+    #src: false
+    # repo (all does not apply)
+    repo: false
+    #submodules: false
+    #sudoers_d: false
+    #update: false
+    #validate: false
+    #vars_yml: false
+    #submodules (all does not apply)
+    #hdev: false
+    #workflows: false
+    # templates (all does not apply)
+    #templates: false 
+  vars_files: vars.yml
+  tasks:
+    - name: Show control variables
+      ansible.builtin.debug:
+        msg:
+          #- "constants={{ constants }}"
+          #- "all={{ all }}"
+          #- "build={{ build }}"
+          #- "delete={{ delete }}"
+          #- "examine={{ examine }}"
+          #- "get={{ get }}"
+          #- "ifconfig={{ ifconfig }}"
+          #- "install={{ install }}"
+          #- "main={{ main }}"
+          #- "new={{ new }}"
+          #- "src={{ src }}"
+          #- "sudoers_d={{ sudoers_d }}"
+          #- "update={{ update }}"
+          #- "validate={{ validate }}"
+          #- "vars_yml={{ vars_yml }}"
+          # repo
+          - "repo={{ repo }}"
+          # submodules
+          #- "hdev={{ hdev }}"
+          #- "workflows={{ workflows }}"
+          # templates
+          #- "templates={{ templates }}"
+      run_once: true
+      delegate_to: localhost
+    
+    # repo
+    - block:
+        - name: Ensure required packages are installed
+          ansible.builtin.apt:
+            name:
+              - git
+              - ansible
+              #- bash-completion
+            state: present
+            update_cache: true
+
+        - name: Remove {{ mgmt_remote_path }}/mgmt if it exists
+          ansible.builtin.file:
+            path: "{{ mgmt_remote_path }}/mgmt"
+            state: absent
+
+        - name: Create {{ mgmt_remote_path }}/mgmt
+          ansible.builtin.file:
+            path: "{{ mgmt_remote_path }}/mgmt"
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Clone mgmt repository into {{ mgmt_remote_path }}/mgmt
+          ansible.builtin.git:
+            repo: "{{ mgmt_repository }}"
+            dest: "{{ mgmt_remote_path }}/mgmt"
+            version: main
+            update: true
+            force: true
+
+        - name: Update all submodules
+          ansible.builtin.command:
+            cmd: git submodule update --init --recursive --remote --merge
+            chdir: "{{ mgmt_remote_path }}/mgmt"
+
+        - name: Install Oreol Ansible Collection
+          ansible.builtin.command:
+            cmd: ansible-galaxy collection install -r requirements.yml -p ./collections --force
+            chdir: "{{ mgmt_remote_path }}/mgmt"
+          changed_when: true
+
+        - name: Check whether CMDB exists
+          ansible.builtin.stat:
+            path: "{{ mgmt_remote_path }}/cmdb"
+          register: cmdb_source
+
+        - name: Copy CMDB if exists
+          ansible.builtin.copy:
+            src: "{{ mgmt_remote_path }}/cmdb/"
+            dest: "{{ mgmt_remote_path }}/mgmt/cmdb/"
+            remote_src: true
+            mode: preserve
+          when: cmdb_source.stat.isdir | default(false)
+
+        #- name: Rename mgmt.sh to mgmt (canonical entrypoint)
+        #  command: mv {{ mgmt_remote_path }}/mgmt/mgmt.sh {{ mgmt_remote_path }}/mgmt/mgmt
+        #  args:
+        #    creates: "{{ mgmt_remote_path }}/mgmt/mgmt"
+
+        #- name: Ensure mgmt is executable
+        #  ansible.builtin.file:
+        #    path: "{{ mgmt_remote_path }}/mgmt/mgmt"
+        #    mode: "0755"
+
+        # Install completion (system-wide)
+        #- name: Install bash completion for mgmt
+        #  ansible.builtin.copy:
+        #    src: "{{ mgmt_remote_path }}/mgmt/mgmt_completion.sh"
+        #    dest: "/usr/share/bash-completion/completions/mgmt"
+        #    remote_src: true
+        #    owner: root
+        #    group: root
+        #    mode: "0644"
+
+        # PATH for all users
+        #- name: Add mgmt to PATH (system-wide)
+        #  ansible.builtin.copy:
+        #    dest: "/etc/profile.d/mgmt.sh"
+        #    content: |
+        #      # mgmt CLI
+        #      export PATH="$PATH:{{ mgmt_remote_path }}/mgmt"
+        #    owner: root
+        #    group: root
+        #    mode: "0644"
+
+        # Export mgmt_PATH for completion (and for the CLI if you want)
+        #- name: Export mgmt_PATH (system-wide bash)
+        #  ansible.builtin.lineinfile:
+        #    path: "/etc/bash.bashrc"
+        #    line: "export mgmt_PATH={{ cli_remote_path }}/mgmt"
+        #    create: true
+
+        # Add extended capabilities
+        #- name: Copy mgmt-users to /etc/sudoers.d
+        #  ansible.builtin.copy:
+        #    src: "{{ cli_remote_path }}/mgmt/src/mgmt-users"
+        #    dest: "/etc/sudoers.d/mgmt-users"
+        #    remote_src: true
+        #    owner: root
+        #    group: root
+        #    mode: "0440"
+        #- name: Copy mgmt-developers to /etc/sudoers.d
+        #  ansible.builtin.copy:
+        #    src: "{{ cli_remote_path }}/mgmt/src/mgmt-developers"
+        #    dest: "/etc/sudoers.d/mgmt-developers"
+        #    remote_src: true
+        #    owner: root
+        #    group: root
+        #    mode: "0440"
+        #- name: Copy mgmt-admins to /etc/sudoers.d
+        #  ansible.builtin.copy:
+        #    src: "{{ cli_remote_path }}/mgmt/src/mgmt-admins"
+        #    dest: "/etc/sudoers.d/mgmt-admins"
+        #    remote_src: true
+        #    owner: root
+        #    group: root
+        #    mode: "0440"
+
+        # copy mgmt_login.sh
+        #- name: Copy mgmt_login.sh script
+        #  ansible.builtin.copy:
+        #    src: "{{ cli_remote_path }}/mgmt/mgmt_login.sh"
+        #    dest: "{{ cli_remote_path }}/mgmt_login.sh"
+        #    remote_src: true
+        #    owner: root
+        #    group: root
+        #    mode: "0755"
+        #- name: Show mgmt_login.sh at login
+        #  ansible.builtin.lineinfile:
+        #    path: /etc/profile.d/mgmt_login.sh
+        #    regexp: '^sudo {{ cli_remote_path }}/mgmt_login\.sh$'
+        #    line: 'sudo {{ cli_remote_path }}/mgmt_login.sh'
+        #    create: true
+        #    owner: root
+        #    group: root
+        #    mode: "0644"
+
+        # Copy examples from the repository already cloned on the target host.
+        #- name: Check whether the CMDB template directory already exists
+        #  ansible.builtin.stat:
+        #    path: "{{ cli_remote_path }}/cmdb"
+        #  register: cmdb_template_directory
+        #- name: Ensure CMDB template directory exists
+        #  ansible.builtin.file:
+        #    path: "{{ cli_remote_path }}/cmdb"
+        #    state: directory
+        #    owner: root
+        #    group: root
+        #    mode: "0755"
+        #  when: not cmdb_template_directory.stat.exists
+        #- name: Copy CMDB templates to {{ cli_remote_path }}/cmdb
+        #  ansible.builtin.copy:
+        #    src: "{{ cli_remote_path }}/mgmt/templates/cmdb/"
+        #    dest: "{{ cli_remote_path }}/cmdb/"
+        #    remote_src: true
+        #    owner: root
+        #    group: root
+        #    mode: "u=rwX,g=rX,o=rX"
+        #    directory_mode: "0755"
+        #  when: not cmdb_template_directory.stat.exists
+        # X grants traversal to directories without making YAML files executable.
+        # Run even when copying is skipped, to repair older installations.
+        #- name: Make CMDB templates readable and directories traversable by all users
+        #  ansible.builtin.file:
+        #    path: "{{ cli_remote_path }}/cmdb"
+        #    state: directory
+        #    recurse: true
+        #    follow: false
+        #    owner: root
+        #    group: root
+        #    mode: "u=rwX,g=rX,o=rX"
+        #- name: Determine the target server short hostname
+        #  ansible.builtin.set_fact:
+        #    short_hostname: "{{ ansible_facts['hostname'].split('.')[0] }}"
+        #- name: Create server CMDB from the example if missing
+        #  ansible.builtin.copy:
+        #    src: "{{ cli_remote_path }}/mgmt/templates/cmdb/a_remote_server.yml"
+        #    dest: "{{ cli_remote_path }}/{{ short_hostname }}.yml"
+        #    remote_src: true
+        #    force: false
+        #    owner: root
+        #    group: root
+        #    mode: "0644"
+        #  register: cmdb_server_copy
+        #- name: Make the server CMDB readable by all users
+        #  ansible.builtin.file:
+        #    path: "{{ cli_remote_path }}/{{ short_hostname }}.yml"
+        #    state: file
+        #    owner: root
+        #    group: root
+        #    mode: "0644"
+        #- name: Explain how to complete the new server CMDB
+        #  ansible.builtin.debug:
+        #    msg: >-
+        #      Created {{ cli_remote_path }}/{{ short_hostname }}.yml from the
+        #      synthetic example. Edit this file to match this server before
+        #      using commands that depend on CMDB device data. Switch examples
+        #      are available in {{ cli_remote_path }}/cmdb/switches.yml.
+        #  when: cmdb_server_copy.changed
+
+        # groups
+        #- name: Identify the user who invoked sudo for installation
+        #  ansible.builtin.set_fact:
+        #    installation_user: "{{ lookup('ansible.builtin.env', 'SUDO_USER') }}"
+        #- name: Ensure mgmt groups exist
+        #  ansible.builtin.group:
+        #    state: present
+        #    name: "{{ item }}"
+        #  loop:
+        #    - mgmt-admins
+        #    - mgmt-developers
+        #    - mgmt-users
+        #- name: Add the installing user to the mgmt groups
+        #  ansible.builtin.user:
+        #    name: "{{ installation_user }}"
+        #    groups:
+        #      - mgmt-admins
+        #      - mgmt-developers
+        #      - mgmt-users
+        #    append: true
+        #  when: installation_user not in ['', 'root']
+      become: true
+      when: repo | bool

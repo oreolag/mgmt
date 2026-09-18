@@ -64,8 +64,6 @@ cd "$TMP_PATH/mgmt"
 echo ""
 echo "${bold}[INFO] Running installer...${normal}"
 
-exit
-
 ansible-playbook \
     -i localhost, \
     -c local \
