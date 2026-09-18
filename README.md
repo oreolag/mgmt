@@ -54,7 +54,7 @@ The default installation is owned by root, so updating it requires `sudo`.
 
 ## Examples
 
-The script ansible-play autocompletes playbooks names from the installed collection as well as inventory names from hosts.
+`ansible-play.sh` supports Tab completion for playbook names from the installed collection and inventory group names from `hosts`.
 
 ![](examples.gif)
 
