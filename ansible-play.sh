@@ -25,8 +25,7 @@ playbook="${playbook//-/_}"
 if [[ $playbook == cli_install ]]; then
     cli_path_file="$cluster_dir/CLI_LOCAL_PATH"
     if [[ ! -r $cli_path_file ]]; then
-        echo "Please update CLI_LOCAL_PATH." >&2
-        echo "Enter the absolute path to your local CLI checkout in $cli_path_file." >&2
+        echo "Please update CLI_LOCAL_PATH" >&2
         exit 1
     fi
     cli_local_path=$(cat -- "$cli_path_file")
@@ -34,13 +33,11 @@ if [[ $playbook == cli_install ]]; then
     cli_local_path="${cli_local_path#"${cli_local_path%%[![:space:]]*}"}"
     cli_local_path="${cli_local_path%"${cli_local_path##*[![:space:]]}"}"
     if [[ -z $cli_local_path ]]; then
-        echo "Please update CLI_LOCAL_PATH." >&2
-        echo "Enter the absolute path to your local CLI checkout in $cli_path_file." >&2
+        echo "Please update CLI_LOCAL_PATH" >&2
         exit 1
     fi
     if [[ $cli_local_path != /* || ! -d $cli_local_path ]]; then
-        echo "Please update CLI_LOCAL_PATH." >&2
-        echo "The path must be an existing absolute directory on the machine running Ansible." >&2
+        echo "Please update CLI_LOCAL_PATH" >&2
         exit 1
     fi
     playbook="$cluster_dir/cli_install.yml"
