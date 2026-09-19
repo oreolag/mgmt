@@ -33,7 +33,7 @@ fi
 platform="$(uname -s)"
 if [[ "$platform" = "Darwin" ]]; then
     if [[ "$installation_type" = "odev_plugin" ]]; then
-        echo "Error: odev_plugin requires Ubuntu"
+        echo "Error: mgmt (odev_plugin) requires Ubuntu"
         exit 1
     fi
     # sudo may omit Homebrew from PATH on Apple Silicon and Intel Macs.
@@ -54,20 +54,14 @@ else
     exit 1
 fi
 
-#echo "REPO_URL: $REPO_URL"
-
-#echo "Hey I am here"
-#exit 
-
 echo "${bold}[INFO] Installing prerequisites...${normal}"
 
 if [[ "$platform" = "Darwin" ]]; then
-    if ! command -v git >/dev/null 2>&1 || ! command -v ansible-playbook >/dev/null 2>&1 || ! command -v ansible-galaxy >/dev/null 2>&1; then
-        if [[ -z "${SUDO_USER:-}" || "$SUDO_USER" = "root" ]]; then
-            echo "Please run brew install git ansible as your normal user, then retry."
-            exit 1
-        fi
-        sudo -H -u "$SUDO_USER" "$(command -v brew)" install git ansible
+    if ! command -v git >/dev/null 2>&1 \
+        || ! command -v ansible-playbook >/dev/null 2>&1 \
+        || ! command -v ansible-galaxy >/dev/null 2>&1 \
+        || ! command -v gh >/dev/null 2>&1; then
+        sudo -H -u "$SUDO_USER" "$(command -v brew)" install git ansible gh
     fi
 else
     apt-get update
@@ -77,6 +71,7 @@ else
         ansible \
         python3 \
         python3-pip \
+        gh \
         sudo
 fi
 
