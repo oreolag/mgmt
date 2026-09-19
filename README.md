@@ -48,9 +48,9 @@ Verify your installation by running the test playbook on the local server:
 cd /opt/mgmt && ./ansible-play.sh test local
 ```
 
-## Updating Collections
+## Updating Oreol Ansible Collection
 
-Run the following command to upgrade Oreol Ansible Collection into the project's `collections` directory. This fetches the latest Oreol Ansible Collection from its `main` branch:
+Run the following command to upgrade [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) into the project's `collections` directory:
 
 ```bash
 cd /opt/mgmt && sudo ./collections-update.sh
@@ -60,7 +60,7 @@ The default installation is owned by root, so updating it requires `sudo`.
 
 ## Examples
 
-`ansible-play.sh` supports Tab completion for playbook names from [Oreol’s Ansible Collection](https://github.com/oreolag/ansible-collection) and inventory group names from `hosts`.
+`ansible-play.sh` supports Tab completion for playbook names from [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) and inventory group names from `hosts`.
 
 ![](examples.gif)
 
