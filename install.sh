@@ -7,9 +7,9 @@ installation_type="${1:-admin_local_repo}"
 export MGMT_ADMIN_PATH="$PWD/my_oreol_mgmt"
 
 # format
-bold=$(tput bold)
+bold=$(tput bold 2>/dev/null || true)
 italic=$(tput sitm 2>/dev/null || true)
-normal=$(tput sgr0)
+normal=$(tput sgr0 2>/dev/null || true)
 
 # constants
 COLOR_PASSED=$(printf '\033[38;2;96;186;66m')
@@ -29,8 +29,20 @@ if [[ "$EUID" -ne 0 ]]; then
     exit 1
 fi
 
-# ubuntu check
-if [[ -f /etc/os-release ]]; then
+# platform check
+platform="$(uname -s)"
+if [[ "$platform" = "Darwin" ]]; then
+    if [[ "$installation_type" = "odev_plugin" ]]; then
+        echo "Error: odev_plugin requires Ubuntu"
+        exit 1
+    fi
+    # sudo may omit Homebrew from PATH on Apple Silicon and Intel Macs.
+    export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+    if ! command -v brew >/dev/null 2>&1; then
+        echo "Please install homebrew"
+        exit 1
+    fi
+elif [[ -f /etc/os-release ]]; then
     . /etc/os-release
 
     if [[ "$ID" != "ubuntu" ]]; then
@@ -49,14 +61,24 @@ fi
 
 echo "${bold}[INFO] Installing prerequisites...${normal}"
 
-apt-get update
+if [[ "$platform" = "Darwin" ]]; then
+    if ! command -v git >/dev/null 2>&1 || ! command -v ansible-playbook >/dev/null 2>&1 || ! command -v ansible-galaxy >/dev/null 2>&1; then
+        if [[ -z "${SUDO_USER:-}" || "$SUDO_USER" = "root" ]]; then
+            echo "Please run brew install git ansible as your normal user, then retry."
+            exit 1
+        fi
+        sudo -H -u "$SUDO_USER" "$(command -v brew)" install git ansible
+    fi
+else
+    apt-get update
 
-apt-get install -y \
-    git \
-    ansible \
-    python3 \
-    python3-pip \
-    sudo
+    apt-get install -y \
+        git \
+        ansible \
+        python3 \
+        python3-pip \
+        sudo
+fi
 
 echo ""
 echo "${bold}[INFO] Cloning mgmt repository...${normal}"

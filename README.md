@@ -33,8 +33,9 @@ curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo 
 ```
 
 ### Supported Platforms
-`mgmt` currently supports Ubuntu-based Linux distributions. Validated environments include:
+`mgmt` currently supports macOS and Ubuntu-based Linux distributions. Validated environments include:
 
+- macOS
 - Ubuntu
 - NVIDIA DGX
 
