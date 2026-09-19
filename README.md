@@ -40,13 +40,10 @@ gh repo create YOUR_USERNAME/my_oreol_mgmt --private --source=. --remote=origin 
 ```
 
 ### Supported Platforms
-`mgmt` currently supports macOS and Ubuntu-based Linux distributions. Validated environments include:
+`mgmt` currently supports macOS and the following Ubuntu-based Linux distributions:
 
-- macOS
 - Ubuntu
 - NVIDIA DGX
-
-Additional Linux distributions may work but are not officially validated yet.
 
 ### Verify the Installation
 
@@ -64,11 +61,9 @@ Run the following command to upgrade [Oreol Ansible Collection](https://github.c
 cd /opt/mgmt && sudo ./collections-update.sh
 ```
 
-The default installation is owned by root, so updating it requires `sudo`.
-
 ## Usage
 
-`ansible-play.sh` takes a playbook name from the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) an inventory group from `hosts`, and an optional comma-separated list of control flags. Each flag is passed to Ansible as a variable set to true.
+`ansible-play.sh` takes a playbook name from the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) an inventory group from `hosts`, and an optional comma-separated list of control flags:
 
 ```bash
 ./ansible-play.sh <playbook> <inventory_group> [flag1,flag2,flag3]
