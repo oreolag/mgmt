@@ -1,5 +1,5 @@
 <p align="right">
-<a href="https://oreol.ch">Oreol</a> <a href="https://github.com/oreolag/ansible-collection">Ansible Collection</a> <a href="https://github.com/oreolag/cli">CLI</a>
+<a href="https://oreol.ch">Oreol</a> <a href="https://github.com/oreolag/ansible-collection">Ansible Collection</a>
 </p>
 
 <!-- <p align="center" style="margin-bottom: 0px;">
@@ -19,10 +19,6 @@
 
 `mgmt` simplifies software installation and low-level system configuration across heterogeneous compute clusters and remote servers. Built on the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) it brings together your inventory, variables, and configuration management database (CMDB).
 
-When [Oreol CLI](https://github.com/oreolag/cli) is installed on a remote server, `mgmt` can also be invoked directly through `odev`.
-
-## Using mgmt
-
 For Oreol-managed clusters, Oreol provides a customized repository for co-managing your infrastructure under your management agreement. For independently managed clusters and remote servers, follow the installation instructions below to get started.
 
 ## Installation
@@ -39,27 +35,19 @@ cd my_oreol_mgmt
 gh repo create YOUR_USERNAME/my_oreol_mgmt --private --source=. --remote=origin --push
 ```
 
-### Supported Platforms
-`mgmt` currently supports macOS and the following Ubuntu-based Linux distributions:
-
-- Ubuntu
-- NVIDIA DGX
-
-### Verify the Installation
-
-Verify your installation by running the test playbook on the local server:
-
-```bash
-cd /opt/mgmt && ./ansible-play.sh test local
-```
-
-## Updating Oreol Ansible Collection
+### Updating Oreol Ansible Collection
 
 Run the following command to upgrade [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) into the project's `collections` directory:
 
 ```bash
 cd /opt/mgmt && sudo ./collections-update.sh
 ```
+
+### Supported Platforms
+`mgmt` currently supports macOS and the following Ubuntu-based Linux distributions:
+
+- Ubuntu
+- NVIDIA DGX
 
 ## Usage
 
@@ -71,7 +59,13 @@ cd /opt/mgmt && sudo ./collections-update.sh
 
 ### Examples
 
-Test your installation on the local server with ```./ansible-play.sh test local```. After updating your hosts `hosts` with file with your actual inventory names, you could start interacting with your remote server with:
+Verify your installation by running the test playbook on the local server:
+
+```bash
+cd /opt/mgmt && ./ansible-play.sh test local
+```
+
+After updating your hosts `hosts` with file with your actual inventory names, you could start interacting with your remote server with:
 
 ```bash
 ./ansible-play.sh passwordless_sudo_groupadd minix
