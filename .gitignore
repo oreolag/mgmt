@@ -8,3 +8,7 @@ localhost.yml
 **/.DS_Store
 
 /collections/
+
+# Local SSH keys; publish only the setup instructions.
+/keys/*
+!/keys/README.md

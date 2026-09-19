@@ -1,4 +1,5 @@
 ---
+# Template: configure these values for your own infrastructure before use.
 ansible_user: root
 ansible_become_method: sudo
 
@@ -6,19 +7,20 @@ cli:
   local_path: "{{ lookup('ansible.builtin.file', inventory_dir ~ '/CLI_LOCAL_PATH') | trim }}"
 
 tailscale:
-  tailnet_id: TGf3dy2rUz11CNTRL
-  tailnet_dns_name: tailaaf611.ts.net
+  # Fill in your own tailnet ID and DNS name before running Tailscale tasks.
+  tailnet_id: ""
+  tailnet_dns_name: ""
 
+# Add your own usernames to the relevant lists, for example: [example_user].
+# Keep personal access configuration out of the public template.
 users:
-  odev_admins:
-    - jmoya82
-    - javier
-  odev_developers:
-    - jmoya82
-    - javier  
-  odev_users:
-    - jmoya82
-    - javier  
-  passwordless_sudo:
-    - jmoya82
-    - javier
+  login:
+    - xxx
+  odev_admins: 
+    - xxx
+  odev_developers: 
+    - xxx
+  odev_users: 
+    - xxx
+  passwordless_sudo: 
+    - xxx
