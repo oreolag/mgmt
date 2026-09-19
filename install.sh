@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+# inputs
+installation_type="${1:-admin_local_repo}"
+export MGMT_ADMIN_PATH="$PWD/my_oreol_mgmt"
+
 # format
 bold=$(tput bold)
 italic=$(tput sitm 2>/dev/null || true)
@@ -64,10 +68,21 @@ cd "$TMP_PATH/mgmt"
 echo ""
 echo "${bold}[INFO] Running installer...${normal}"
 
-ansible-playbook \
+if [ "$installation_type" = "" ] || [ "$installation_type" = "admin_local_repo" ]; then
+    ansible-playbook \
+    -i localhost, \
+    -c local \
+    install.yml \
+    --extra-vars "admin_local_repo=true" #--check
+elif [ "$installation_type" = "odev_plugin" ]; then
+    ansible-playbook \
     -i localhost, \
     -c local \
     install.yml \
     --extra-vars "odev_plugin=true" #--check
+else
+    echo "Unknown installation mode: $installation_type" >&2
+    exit 1
+fi
 
 echo "${bold}${COLOR_PASSED}✓${normal} mgmt installation completed${normal}"

@@ -9,6 +9,8 @@
     ansible_python_interpreter: /usr/bin/python3
     mgmt_remote_path: /opt
     mgmt_repository: "https://github.com/oreolag/mgmt.git"
+    admin_repo_path: "{{ lookup('ansible.builtin.env', 'MGMT_ADMIN_PATH') }}"
+    admin_repo_user: "{{ lookup('ansible.builtin.env', 'SUDO_USER') or 'root' }}"
     # control variables
     #delete: false
     #examine: false
@@ -21,6 +23,7 @@
     #run: false
     #src: false
     # odev_plugin (all does not apply)
+    admin_local_repo: false
     odev_plugin: false
     #submodules: false
     #sudoers_d: false
@@ -53,6 +56,7 @@
           #- "validate={{ validate }}"
           #- "vars_yml={{ vars_yml }}"
           # odev_plugin
+          - "admin_local_repo={{ admin_local_repo }}"
           - "odev_plugin={{ odev_plugin }}"
           # submodules
           #- "hdev={{ hdev }}"
@@ -61,6 +65,73 @@
           #- "templates={{ templates }}"
       run_once: true
       delegate_to: localhost
+
+    # admin_local_repo
+    - block:
+        - name: Require an administration repository path
+          ansible.builtin.assert:
+            that:
+              - admin_repo_path | length > 0
+            fail_msg: Run install.sh to select the administration repository destination.
+
+        - name: Check administration repository destination
+          ansible.builtin.stat:
+            path: "{{ admin_repo_path }}"
+            follow: false
+          register: admin_destination
+
+        - name: Refuse to overwrite an existing destination
+          ansible.builtin.assert:
+            that:
+              - not admin_destination.stat.exists
+            fail_msg: "Destination already exists: {{ admin_repo_path }}"
+
+        - name: Clone mgmt repository into {{ admin_repo_path }}
+          ansible.builtin.git:
+            repo: "{{ mgmt_repository }}"
+            dest: "{{ admin_repo_path }}"
+            version: main
+
+        - name: Update all submodules
+          ansible.builtin.command:
+            cmd: git submodule update --init --recursive --remote --merge
+            chdir: "{{ admin_repo_path }}"
+
+        - name: Install Oreol Ansible Collection
+          ansible.builtin.command:
+            cmd: ansible-galaxy collection install -r requirements.yml -p ./collections --force
+            chdir: "{{ admin_repo_path }}"
+          changed_when: true
+
+        - name: Disconnect the Oreol remote
+          ansible.builtin.command:
+            cmd: git remote remove origin
+            chdir: "{{ admin_repo_path }}"
+          changed_when: true
+
+        - name: Find the invoking user's primary group
+          ansible.builtin.command:
+            argv: [id, -gn, "{{ admin_repo_user }}"]
+          register: admin_group
+          changed_when: false
+
+        - name: Give the administration repository to the invoking user
+          ansible.builtin.file:
+            path: "{{ admin_repo_path }}"
+            state: directory
+            owner: "{{ admin_repo_user }}"
+            group: "{{ admin_group.stdout }}"
+            recurse: true
+            follow: false
+
+        - name: Show administration repository location
+          ansible.builtin.debug:
+            msg:
+              - "Created your administration repository at {{ admin_repo_path }}"
+              - "Run ./ansible-play.sh test local from that directory."
+              - "You can rename the directory and add your own GitHub remote."
+      become: true
+      when: admin_local_repo | bool
     
     # odev_plugin
     - block:
