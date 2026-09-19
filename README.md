@@ -57,7 +57,7 @@ cd /opt/mgmt && sudo ./collections-update.sh
 ./ansible-play.sh <playbook> <inventory_group> [flag1,flag2,flag3]
 ```
 
-### Examples
+## Examples
 
 Verify your installation by running the test playbook on the local server:
 
@@ -65,7 +65,7 @@ Verify your installation by running the test playbook on the local server:
 cd /opt/mgmt && ./ansible-play.sh test local
 ```
 
-After updating your hosts `hosts` with file with your actual inventory names, you could start interacting with your remote server with:
+After updating your `hosts` file with your actual inventory names, you could start interacting with your remote server with:
 
 ```bash
 ./ansible-play.sh passwordless_sudo_groupadd minix
