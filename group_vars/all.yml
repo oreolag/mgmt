@@ -16,6 +16,8 @@ tailscale:
 users:
   login:
     - xxx
+  login_deleted:
+    - xxx
   odev_admins: 
     - xxx
   odev_developers: 
