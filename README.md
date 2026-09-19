@@ -32,6 +32,17 @@ Run the following command on your Linux host (see [Supported Platforms](#support
 curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo bash
 ```
 
+After installation, you can publish your administration repository to a private GitHub repository to version and track changes to your inventory, variables, and CMDB.
+
+From the directory where you ran the installer:
+
+```bash
+cd my_oreol_mgmt
+gh repo create YOUR_USERNAME/my_oreol_mgmt --private --source=. --remote=origin --push
+```
+
+If needed, run `gh auth login` first.
+
 ### Supported Platforms
 `mgmt` currently supports macOS and Ubuntu-based Linux distributions. Validated environments include:
 
