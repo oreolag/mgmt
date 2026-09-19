@@ -92,9 +92,9 @@
             dest: "{{ admin_repo_path }}"
             version: main
 
-        - name: Update all submodules
+        - name: Initialize submodules at their recorded commits
           ansible.builtin.command:
-            cmd: git submodule update --init --recursive --remote --merge
+            cmd: git submodule update --init --recursive
             chdir: "{{ admin_repo_path }}"
 
         - name: Install Oreol Ansible Collection
