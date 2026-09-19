@@ -66,9 +66,21 @@ cd /opt/mgmt && sudo ./collections-update.sh
 
 The default installation is owned by root, so updating it requires `sudo`.
 
-## Examples
+## Usage
 
-`ansible-play.sh` supports Tab completion for playbook names from [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) and inventory group names from `hosts`.
+`ansible-play.sh` takes a playbook name from the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) an inventory group from `hosts`, and an optional comma-separated list of control flags. Each flag is passed to Ansible as a variable set to true.
+
+```bash
+./ansible-play.sh <playbook> <inventory_group> [flag1,flag2,flag3]
+```
+
+### Examples
+
+Test your installation on the local server with ```./ansible-play.sh test local```. After updating your hosts `hosts` with file with your actual inventory names, you could start interacting with your remote server with:
+
+```bash
+./ansible-play.sh passwordless_sudo_groupadd minix
+```
 
 ![](examples.gif)
 
