@@ -19,7 +19,7 @@
 
 `mgmt` simplifies software installation and low-level system configuration across heterogeneous compute clusters and remote servers. Built on the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) it brings together your inventory, variables, and configuration management database (CMDB).
 
-For Oreol-managed clusters, Oreol provides a customized repository for co-managing your infrastructure under your management agreement. For independently managed clusters and remote servers, follow the installation instructions below to get started.
+For Oreol-managed clusters, Oreol provides a customized `mgmt` repository for co-managing your infrastructure under your management agreement. For independently managed clusters and remote servers, follow the installation instructions below to get started.
 
 ## Installation
 Run the following command on your Linux host (see [Supported Platforms](#supported-platforms)):
@@ -28,12 +28,16 @@ Run the following command on your Linux host (see [Supported Platforms](#support
 curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo bash
 ```
 
-After installation, you can publish your administration repository to a private GitHub repository to version and track changes to your inventory, variables, and CMDB. From the directory where you ran the installer:
+### Publishing to GitHub
+
+After installation, you can publish your administration repository to a private GitHub repository to version and track changes to your inventory, variables, and CMDB:
 
 ```bash
 cd my_oreol_mgmt
 gh repo create YOUR_USERNAME/my_oreol_mgmt --private --source=. --remote=origin --push
 ```
+
+Replace `YOUR_USERNAME` with your GitHub username. If needed, run `gh auth login` first.
 
 ### Updating Oreol Ansible Collection
 
