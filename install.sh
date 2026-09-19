@@ -68,6 +68,6 @@ ansible-playbook \
     -i localhost, \
     -c local \
     install.yml \
-    --extra-vars "repo=true" #--check
+    --extra-vars "odev_plugin=true" #--check
 
 echo "${bold}${COLOR_PASSED}✓${normal} mgmt installation completed${normal}"

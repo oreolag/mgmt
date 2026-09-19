@@ -20,8 +20,8 @@
     #program: false
     #run: false
     #src: false
-    # repo (all does not apply)
-    repo: false
+    # odev_plugin (all does not apply)
+    odev_plugin: false
     #submodules: false
     #sudoers_d: false
     #update: false
@@ -52,8 +52,8 @@
           #- "update={{ update }}"
           #- "validate={{ validate }}"
           #- "vars_yml={{ vars_yml }}"
-          # repo
-          - "repo={{ repo }}"
+          # odev_plugin
+          - "odev_plugin={{ odev_plugin }}"
           # submodules
           #- "hdev={{ hdev }}"
           #- "workflows={{ workflows }}"
@@ -62,7 +62,7 @@
       run_once: true
       delegate_to: localhost
     
-    # repo
+    # odev_plugin
     - block:
         - name: Ensure required packages are installed
           ansible.builtin.apt:
@@ -286,4 +286,4 @@
         #    append: true
         #  when: installation_user not in ['', 'root']
       become: true
-      when: repo | bool
+      when: odev_plugin | bool
