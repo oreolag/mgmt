@@ -53,9 +53,10 @@ cd /opt/mgmt && sudo ./collections-update.sh
 - Ubuntu
 - NVIDIA DGX
 
-## Usage
+## Using mgmt
 
-`ansible-play.sh` takes a playbook name from the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) an inventory group from `hosts`, and an optional comma-separated list of control flags:
+
+Use `ansible-play.sh` to run playbooks from [Oreol Ansible Collection.](https://github.com/oreolag/ansible-collection) It takes a playbook name, an inventory group from `hosts`, and an optional comma-separated list of control flags:
 
 ```bash
 ./ansible-play.sh <playbook> <inventory_group> [flag1,flag2,flag3]
@@ -63,17 +64,23 @@ cd /opt/mgmt && sudo ./collections-update.sh
 
 ## Examples
 
-Verify your installation by running the test playbook on the local server:
+### Verifying your installation
+
+From your administration repository, run the test playbook on the local server:
 
 ```bash
-cd /opt/mgmt && ./ansible-play.sh test local
+./ansible-play.sh test local
 ```
 
-After updating your `hosts` file with your actual inventory names, you could start interacting with your remote server with:
+### Running a playbook
+
+Edit `hosts` to define your inventory groups and their servers. For example, if you create a group named `minix`, run:
 
 ```bash
 ./ansible-play.sh passwordless_sudo_groupadd minix
 ```
+
+This configures passwordless sudo for the users specified in `group_vars/all.yml` on servers in the `minix` group. 
 
 ![](examples.gif)
 
