@@ -3,6 +3,10 @@
 ansible_user: root
 ansible_become_method: sudo
 
+#banner
+banner:
+  remote_path: /opt
+
 cli:
   local_path: "{{ lookup('ansible.builtin.file', inventory_dir ~ '/CLI_LOCAL_PATH') | trim }}"
 
