@@ -171,6 +171,31 @@ devices:
           peer:
             device: "leaf-02"
             port: "Ethernet1"
+    - id: 1
+      vendor: "Mellanox"
+      model: "ConnectX-7"
+      speed: "200Gbps"
+      ports: 2
+      uplinks:
+        - id: 0
+          name: "enp1s0f0np0"
+          bdf: "0000:01:00.0"
+          mac: "02:00:00:03:00:0c"
+          ip_address: "10.0.8.10"
+          ip_mask: 24
+          peer:
+            device: "leaf-01"
+            port: "Ethernet1"
+        - id: 1
+          name: "enp1s0f1np1"
+          bdf: "0000:01:00.1"
+          mac: "02:00:00:03:00:0d"
+          ip_address: "10.0.9.10"
+          ip_mask: 24
+          peer:
+            device: "leaf-02"
+            port: "Ethernet1"
+
   gpu:
     - id: 0
       name: "NVIDIA A100 80GB PCIe"
