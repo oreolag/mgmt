@@ -3,12 +3,17 @@
 ansible_user: root
 ansible_become_method: sudo
 
-#banner
+# banner
 banner:
   remote_path: /opt
 
+# CLI
 cli:
   local_path: "{{ lookup('ansible.builtin.file', inventory_dir ~ '/CLI_LOCAL_PATH') | trim }}"
+
+# CMDB
+cmdb:
+  remote_path: /opt
 
 tailscale:
   # Fill in your own tailnet ID and DNS name before running Tailscale tasks.
