@@ -3,6 +3,7 @@ set -euo pipefail
 
 usage() {
     echo "Usage: $0 <playbook> <hosts> [flags] [ansible options...]"
+    echo "Playbook may be a collection name or an existing file path."
     echo "Example: $0 passwordless_sudo_groupadd spark update --ask-become-pass"
     echo "Install Oreol CLI: $0 cli_install local repo --ask-become-pass"
     echo "For cli_install, set CLI_LOCAL_PATH to your local CLI checkout first."
@@ -18,40 +19,48 @@ if [[ $# -lt 2 || -z ${2:-} ]]; then
 fi
 
 cluster_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-playbook="${1##*/}"
-playbook="${playbook%.yml}"
-playbook="${playbook%.yaml}"
-playbook="${playbook//-/_}"
-if [[ $playbook == cli_install ]]; then
-    cli_path_file="$cluster_dir/CLI_LOCAL_PATH"
-    if [[ ! -r $cli_path_file ]]; then
-        echo "Please update CLI_LOCAL_PATH" >&2
-        exit 1
-    fi
-    cli_local_path=$(cat -- "$cli_path_file")
-    # Trim surrounding whitespace, matching the inventory's file lookup.
-    cli_local_path="${cli_local_path#"${cli_local_path%%[![:space:]]*}"}"
-    cli_local_path="${cli_local_path%"${cli_local_path##*[![:space:]]}"}"
-    if [[ -z $cli_local_path ]]; then
-        echo "Please update CLI_LOCAL_PATH" >&2
-        exit 1
-    fi
-    if [[ $cli_local_path != /* || ! -d $cli_local_path ]]; then
-        echo "Please update CLI_LOCAL_PATH" >&2
-        exit 1
-    fi
-    playbook="$cluster_dir/cli_install.yml"
-    if [[ ! -f $playbook ]]; then
-        echo "CLI installer is missing. Run: git submodule update --init --recursive" >&2
-        exit 1
-    fi
+# Resolve files relative to the caller before switching to cluster_dir.
+if [[ -f $1 ]]; then
+    playbook="$(cd -- "$(dirname -- "$1")" && pwd)/$(basename -- "$1")"
+elif [[ $1 == */* ]]; then
+    echo "Playbook file not found: $1" >&2
+    exit 1
 else
-    if [[ $playbook != oreol.mgmt.* ]]; then
-        playbook="oreol.mgmt.$playbook"
-    fi
-    if [[ ! $playbook =~ ^oreol\.mgmt\.[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-        echo "Invalid collection playbook name: $playbook" >&2
-        exit 1
+    playbook="${1##*/}"
+    playbook="${playbook%.yml}"
+    playbook="${playbook%.yaml}"
+    playbook="${playbook//-/_}"
+    if [[ $playbook == cli_install ]]; then
+        cli_path_file="$cluster_dir/CLI_LOCAL_PATH"
+        if [[ ! -r $cli_path_file ]]; then
+            echo "Please update CLI_LOCAL_PATH" >&2
+            exit 1
+        fi
+        cli_local_path=$(cat -- "$cli_path_file")
+        # Trim surrounding whitespace, matching the inventory's file lookup.
+        cli_local_path="${cli_local_path#"${cli_local_path%%[![:space:]]*}"}"
+        cli_local_path="${cli_local_path%"${cli_local_path##*[![:space:]]}"}"
+        if [[ -z $cli_local_path ]]; then
+            echo "Please update CLI_LOCAL_PATH" >&2
+            exit 1
+        fi
+        if [[ $cli_local_path != /* || ! -d $cli_local_path ]]; then
+            echo "Please update CLI_LOCAL_PATH" >&2
+            exit 1
+        fi
+        playbook="$cluster_dir/cli_install.yml"
+        if [[ ! -f $playbook ]]; then
+            echo "CLI installer is missing. Run: git submodule update --init --recursive" >&2
+            exit 1
+        fi
+    else
+        if [[ $playbook != oreol.mgmt.* ]]; then
+            playbook="oreol.mgmt.$playbook"
+        fi
+        if [[ ! $playbook =~ ^oreol\.mgmt\.[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+            echo "Invalid collection playbook name: $playbook" >&2
+            exit 1
+        fi
     fi
 fi
 target=$2
