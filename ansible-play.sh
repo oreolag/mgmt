@@ -7,6 +7,7 @@ usage() {
     echo "Example: $0 passwordless_sudo_groupadd spark update --ask-become-pass"
     echo "Install Oreol CLI: $0 cli_install local repo --ask-become-pass"
     echo "For cli_install, set CLI_LOCAL_PATH to your local CLI checkout first."
+    echo "Use -i or --inventory to replace the default hosts inventory."
     echo "Flags are comma-separated variable names set to true (e.g. update,validate)."
 }
 if [[ ${1:-} == --help || ${1:-} == -h ]]; then
@@ -72,7 +73,7 @@ target_json=${target_json//\"/\\\"}
 target_json=${target_json//$'\n'/\\n}
 target_json=${target_json//$'\r'/\\r}
 target_json=${target_json//$'\t'/\\t}
-args=(--inventory "$cluster_dir/hosts" --limit "$target"
+args=(--limit "$target"
       --extra-vars "{\"oreol_target\":\"$target_json\"}")
 
 if [[ $# -gt 0 && $1 != -* ]]; then
@@ -86,6 +87,21 @@ if [[ $# -gt 0 && $1 != -* ]]; then
         fi
         args+=(--extra-vars "{\"$flag\":true}")
     done
+fi
+
+# Explicit inventories replace the default; forward their arguments unchanged.
+explicit_inventory=false
+for option in "$@"; do
+    case "$option" in
+        -i*|--inventory|--inventory=*|--inventory-file|--inventory-file=*)
+            explicit_inventory=true
+            break
+            ;;
+        --) break ;;
+    esac
+done
+if [[ $explicit_inventory == false ]]; then
+    args=(--inventory "$cluster_dir/hosts" "${args[@]}")
 fi
 
 if ! command -v ansible-playbook >/dev/null 2>&1; then
