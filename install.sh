@@ -78,7 +78,9 @@ fi
 echo ""
 echo "${bold}[INFO] Cloning mgmt repository...${normal}"
 
-git clone --recursive "$REPO_URL" "$TMP_PATH/mgmt"
+# Show download progress and fail if a transfer stalls for a full minute.
+git -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+    clone --recursive --progress "$REPO_URL" "$TMP_PATH/mgmt"
 
 cd "$TMP_PATH/mgmt"
 
