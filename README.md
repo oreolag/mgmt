@@ -62,6 +62,16 @@ Use `ansible-play.sh` to run playbooks from [Oreol Ansible Collection.](https://
 ./ansible-play.sh <playbook> <inventory_group> [flag1,flag2,flag3]
 ```
 
+### Tab completion
+
+The administration repository installer enables playbook and inventory group completion for your configured Bash or Zsh shell. Open a new terminal session after installation. To enable it immediately in the current Bash or Zsh session, run:
+
+```bash
+source "$HOME/.local/share/mgmt/ansible-play-completion.bash"
+```
+
+The `odev_plugin` installer continues to install system-wide Bash completion.
+
 ## Examples
 
 ### Verifying your installation

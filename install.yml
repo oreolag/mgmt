@@ -124,12 +124,66 @@
             recurse: true
             follow: false
 
+        - name: Find the invoking user's shell startup files
+          ansible.builtin.command:
+            argv:
+              - "{{ ansible_python_interpreter }}"
+              - -c
+              - |
+                import json, os, pwd, sys
+                user = pwd.getpwnam(sys.argv[1])
+                home = user.pw_dir
+                shell = os.path.basename(user.pw_shell)
+                files = []
+                if shell == 'bash':
+                    login = next((name for name in ('.bash_profile', '.bash_login', '.profile')
+                                  if os.path.isfile(os.path.join(home, name))), '.profile')
+                    files = [os.path.join(home, '.bashrc'), os.path.join(home, login)]
+                elif shell == 'zsh':
+                    files = [os.path.join(home, '.zshrc')]
+                print(json.dumps({'home': home, 'files': files}))
+              - "{{ admin_repo_user }}"
+          register: admin_shell
+          changed_when: false
+
+        - name: Create user completion directory
+          ansible.builtin.file:
+            path: "{{ (admin_shell.stdout | from_json).home }}/.local/share/mgmt"
+            state: directory
+            owner: "{{ admin_repo_user }}"
+            group: "{{ admin_group.stdout }}"
+            mode: "0755"
+
+        - name: Install user completion for ansible-play.sh
+          ansible.builtin.copy:
+            src: "{{ admin_repo_path }}/ansible-play-completion.bash"
+            dest: "{{ (admin_shell.stdout | from_json).home }}/.local/share/mgmt/ansible-play-completion.bash"
+            remote_src: true
+            owner: "{{ admin_repo_user }}"
+            group: "{{ admin_group.stdout }}"
+            mode: "0644"
+
+        - name: Enable completion in the invoking user's shell
+          ansible.builtin.blockinfile:
+            path: "{{ item }}"
+            create: true
+            owner: "{{ admin_repo_user }}"
+            group: "{{ admin_group.stdout }}"
+            mode: "0644"
+            marker: "# {mark} Oreol mgmt completion"
+            block: |
+              if [ -n "${BASH_VERSION:-}${ZSH_VERSION:-}" ] && [ -r "$HOME/.local/share/mgmt/ansible-play-completion.bash" ]; then
+                  . "$HOME/.local/share/mgmt/ansible-play-completion.bash"
+              fi
+          loop: "{{ (admin_shell.stdout | from_json).files }}"
+
         - name: Show administration repository location
           ansible.builtin.debug:
             msg:
               - "Created your administration repository at {{ admin_repo_path }}"
               - "Run ./ansible-play.sh test local from that directory."
               - "You can rename the directory and add your own GitHub remote."
+              - "Open a new Bash or Zsh session to enable Tab completion."
       become: true
       when: admin_local_repo | bool
     

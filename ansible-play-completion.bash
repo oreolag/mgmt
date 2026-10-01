@@ -1,4 +1,13 @@
 # Bash completion for the mgmt playbook wrapper.
+# Zsh can use the same completion through its Bash compatibility layer.
+if [[ -n ${ZSH_VERSION:-} ]]; then
+    autoload -Uz compinit bashcompinit
+    if ! typeset -f compdef >/dev/null; then
+        compinit
+    fi
+    bashcompinit
+fi
+
 _oreol_ansible_play_complete() {
     local current command_path cluster_dir file name
     COMPREPLY=()
@@ -6,7 +15,7 @@ _oreol_ansible_play_complete() {
 
     command_path=${COMP_WORDS[0]}
     if [[ $command_path != */* ]]; then
-        command_path=$(type -P -- "$command_path") || return 0
+        command_path=$(command -v -- "$command_path") || return 0
     fi
     cluster_dir=$(cd -- "$(dirname -- "$command_path")" 2>/dev/null && pwd) || return 0
 
