@@ -7,8 +7,7 @@ if [[ ${1:-} == --help || ${1:-} == -h ]]; then
     exit 0
 fi
 if [[ $# -ne 1 || ! $1 =~ ^[a-z][a-z0-9_]*$ || $1 == cli_install ]]; then
-    echo "Provide a lowercase playbook name using letters, digits, and underscores (for example: set_ip)." >&2
-    echo "The name cli_install is reserved." >&2
+    echo "Invalid playbook: ${*:-<empty>}" >&2
     exit 1
 fi
 
@@ -16,10 +15,12 @@ cluster_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 name=$1
 
 # Do not traverse symlinked parent directories outside this project.
-if [[ -L "$cluster_dir/playbooks" || -L "$cluster_dir/roles" ]]; then
-    echo "Cannot delete through a symlinked playbooks or roles directory." >&2
-    exit 1
-fi
+for directory in "$cluster_dir/playbooks" "$cluster_dir/roles"; do
+    if [[ -L $directory ]]; then
+        echo "Playbook cannot be deleted: $name" >&2
+        exit 1
+    fi
+done
 
 found=false
 for target in "$cluster_dir/playbooks/$name.yml" "$cluster_dir/playbooks/$name.yaml" "$cluster_dir/roles/$name"; do
@@ -28,7 +29,7 @@ for target in "$cluster_dir/playbooks/$name.yml" "$cluster_dir/playbooks/$name.y
     fi
 done
 if [[ $found == false ]]; then
-    echo "No local playbook or role found: $name" >&2
+    echo "Playbook does not exist: $name" >&2
     exit 1
 fi
 

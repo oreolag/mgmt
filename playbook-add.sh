@@ -6,8 +6,7 @@ if [[ ${1:-} == --help || ${1:-} == -h ]]; then
     exit 0
 fi
 if [[ $# -ne 1 || ! $1 =~ ^[a-z][a-z0-9_]*$ || $1 == cli_install ]]; then
-    echo "Provide a lowercase playbook name using letters, digits, and underscores (for example: set_ip)." >&2
-    echo "The name cli_install is reserved." >&2
+    echo "Invalid playbook: ${*:-<empty>}" >&2
     exit 1
 fi
 
@@ -18,14 +17,18 @@ role="$cluster_dir/roles/$name"
 
 for destination in "$playbook" "$cluster_dir/playbooks/$name.yaml" "$role"; do
     if [[ -e $destination || -L $destination ]]; then
-        echo "Already exists: $destination. No files were changed." >&2
+        if [[ $destination == "$role" ]]; then
+            echo "Role already exists: $name" >&2
+        else
+            echo "Playbook already exists: $name" >&2
+        fi
         exit 1
     fi
 done
 
 for template in MY_PLAYBOOK.yml MY_PLAYBOOK_role/README.md MY_PLAYBOOK_role/tasks/main.yml; do
     if [[ ! -r "$cluster_dir/templates/$template" ]]; then
-        echo "Missing template: $template" >&2
+        echo "Template does not exist: $template" >&2
         exit 1
     fi
 done
