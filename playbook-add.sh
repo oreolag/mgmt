@@ -34,6 +34,3 @@ mkdir -p "$cluster_dir/playbooks" "$role/tasks"
 sed "s/MY_PLAYBOOK/$name/g" "$cluster_dir/templates/MY_PLAYBOOK.yml" > "$playbook"
 sed "s/MY_PLAYBOOK/$name/g" "$cluster_dir/templates/MY_PLAYBOOK_role/README.md" > "$role/README.md"
 sed "s/MY_PLAYBOOK/$name/g" "$cluster_dir/templates/MY_PLAYBOOK_role/tasks/main.yml" > "$role/tasks/main.yml"
-
-echo "Created playbooks/$name.yml and roles/$name."
-echo "Run from $cluster_dir: ./ansible-play.sh $name local"
