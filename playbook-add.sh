@@ -26,6 +26,14 @@ for destination in "$playbook" "$cluster_dir/playbooks/$name.yaml" "$role"; do
     fi
 done
 
+collection_playbooks="$cluster_dir/collections/ansible_collections/oreol/mgmt/playbooks"
+for extension in yml yaml; do
+    if [[ -e "$collection_playbooks/$name.$extension" || -L "$collection_playbooks/$name.$extension" ]]; then
+        echo "Playbook already exists (collection): $name" >&2
+        exit 1
+    fi
+done
+
 for template in MY_PLAYBOOK.yml MY_PLAYBOOK_role/README.md MY_PLAYBOOK_role/tasks/main.yml; do
     if [[ ! -r "$cluster_dir/templates/$template" ]]; then
         echo "Template does not exist: $template" >&2

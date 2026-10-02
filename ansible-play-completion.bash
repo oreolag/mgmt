@@ -9,7 +9,7 @@ if [[ -n ${ZSH_VERSION:-} ]]; then
 fi
 
 _oreol_ansible_play_complete() {
-    local current command_path cluster_dir file name
+    local current command_path cluster_dir file name candidate duplicate
     COMPREPLY=()
     current=${COMP_WORDS[COMP_CWORD]}
 
@@ -24,7 +24,7 @@ _oreol_ansible_play_complete() {
             if [[ -f $cluster_dir/cli_install.yml && cli_install == "$current"* ]]; then
                 COMPREPLY+=(cli_install)
             fi
-            for file in "$cluster_dir"/collections/ansible_collections/oreol/mgmt/playbooks/*; do
+            for file in "$cluster_dir"/playbooks/* "$cluster_dir"/collections/ansible_collections/oreol/mgmt/playbooks/*; do
                 [[ -f $file ]] || continue
                 case $file in
                     *.yml) name=${file##*/}; name=${name%.yml} ;;
@@ -37,9 +37,15 @@ _oreol_ansible_play_complete() {
                     continue
                 fi
                 if [[ $current == oreol.mgmt.* ]]; then
+                    [[ $file == "$cluster_dir"/collections/ansible_collections/oreol/mgmt/playbooks/* ]] || continue
                     name="oreol.mgmt.$name"
                 fi
-                [[ $name == "$current"* ]] && COMPREPLY+=("$name")
+                [[ $name == "$current"* ]] || continue
+                duplicate=false
+                for candidate in "${COMPREPLY[@]}"; do
+                    [[ $candidate == "$name" ]] && duplicate=true
+                done
+                [[ $duplicate == true ]] || COMPREPLY+=("$name")
             done
             ;;
         2)
