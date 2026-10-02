@@ -1,7 +1,8 @@
 ---
 - name: MY_PLAYBOOK playbook
   hosts: "{{ oreol_target }}"
-  become: true
+  gather_facts: false
+  become: false
 
   roles:
-    - roles/MY_PLAYBOOK
+    - MY_PLAYBOOK

@@ -1,10 +1,8 @@
 ---
-- name: task 1
+- name: Example task 1
   ansible.builtin.debug:
-  msg:
-    - "task 1"
+    msg: "MY_PLAYBOOK: task 1"
 
-- name: task 2
+- name: Example task 2
   ansible.builtin.debug:
-  msg:
-    - "task 2"
+    msg: "MY_PLAYBOOK: task 2"

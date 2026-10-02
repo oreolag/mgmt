@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
     echo "Usage: $0 <playbook> <hosts> [flags] [ansible options...]"
-    echo "Playbook may be a collection name or an existing file path."
+    echo "Playbook may be a local name in playbooks/, a collection name, or an existing file path."
     echo "Example: $0 passwordless_sudo_groupadd spark update --ask-become-pass"
     echo "Install Oreol CLI: $0 cli_install local repo --ask-become-pass"
     echo "For cli_install, set CLI_LOCAL_PATH to your local CLI checkout first."
@@ -54,6 +54,10 @@ else
             echo "CLI installer is missing. Run: git submodule update --init --recursive" >&2
             exit 1
         fi
+    elif [[ -f "$cluster_dir/playbooks/$playbook.yml" ]]; then
+        playbook="$cluster_dir/playbooks/$playbook.yml"
+    elif [[ -f "$cluster_dir/playbooks/$playbook.yaml" ]]; then
+        playbook="$cluster_dir/playbooks/$playbook.yaml"
     else
         if [[ $playbook != oreol.mgmt.* ]]; then
             playbook="oreol.mgmt.$playbook"
