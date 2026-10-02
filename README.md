@@ -22,7 +22,7 @@
 For Oreol-managed clusters, Oreol provides a customized `mgmt` repository for co-managing your infrastructure under your management agreement. For independently managed clusters and remote servers, follow the installation instructions below to get started.
 
 ## Installation
-Run the following command on your Linux host (see [Supported Platforms](#supported-platforms)):
+Run the following command on your host (see [Supported Platforms](#supported-platforms)):
 
 ```bash
 curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo bash
@@ -41,11 +41,13 @@ Replace `YOUR_USERNAME` with your GitHub username. If needed, run `gh auth login
 
 ### Updating Oreol Ansible Collection
 
-Run the following command to upgrade [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) into the project's `collections` directory:
+From your administration repository, run the following command to update [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) in the project's `collections` directory:
 
 ```bash
-cd /opt/mgmt && sudo ./collections-update.sh
+./collections-update.sh
 ```
+
+For the plugin installation in `/opt/mgmt`, run `sudo ./collections-update.sh` from that directory.
 
 ### Supported Platforms
 `mgmt` currently supports macOS and the following Ubuntu-based Linux distributions:
@@ -55,22 +57,25 @@ cd /opt/mgmt && sudo ./collections-update.sh
 
 ## Using mgmt
 
-
-Use `ansible-play.sh` to run playbooks from [Oreol Ansible Collection.](https://github.com/oreolag/ansible-collection) It takes a playbook name, an inventory group from `hosts`, and an optional comma-separated list of control flags:
+Use `ansible-play.sh` to run playbooks from [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) or your own playbooks. It takes a playbook name, an inventory group from `hosts`, and an optional comma-separated list of control flags:
 
 ```bash
 ./ansible-play.sh <playbook> <inventory_group> [flag1,flag2,flag3]
 ```
 
-### Tab completion
+### Adding your own playbooks
 
-The administration repository installer enables playbook and inventory group completion for your configured Bash or Zsh shell. Open a new terminal session after installation. To enable it immediately in the current Bash or Zsh session, run:
+Use `playbook-add.sh` to create your own playbook and matching role from the templates:
 
 ```bash
-source "$HOME/.local/share/mgmt/ansible-play-completion.bash"
+./playbook-add.sh <playbook>
 ```
 
-The `odev_plugin` installer continues to install system-wide Bash completion.
+This creates `playbooks/<playbook>.yml` and `roles/<playbook>/`. Names already used locally or by the collection are rejected. To delete a local playbook and its matching role, run `./playbook-delete.sh <playbook>`.
+
+### Tab completion
+
+`ansible-play.sh` supports Tab completion for local and collection playbook names, and inventory groups from `hosts`. Open a new Bash or Zsh session after installation to enable it.
 
 ## Examples
 
