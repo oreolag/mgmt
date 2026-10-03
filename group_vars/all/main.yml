@@ -15,6 +15,7 @@ cli:
 cmdb:
   remote_path: /opt
 
+# tailscale
 tailscale:
   # Fill in your own tailnet ID and DNS name before running Tailscale tasks.
   tailnet_id: ""
