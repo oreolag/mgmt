@@ -1,0 +1,39 @@
+---
+# present grants access; absent removes the account or the listed membership.
+# Login account removal is applied by login_useradd (including the home).
+users:
+  # login:
+  #   - name: example_user
+  #     state: present
+  #   - name: former_user
+  #     state: absent
+  login: []
+
+  # odev_admins:
+  #   - name: example_user
+  #     state: present
+  #   - name: former_user
+  #     state: absent
+  odev_admins: []
+
+  # odev_developers:
+  #   - name: example_user
+  #     state: present
+  #   - name: former_user
+  #     state: absent
+  odev_developers: []
+
+  # odev_users:
+  #   - name: example_user
+  #     state: present
+  #   - name: former_user
+  #     state: absent
+  odev_users: []
+
+  # passwordless_sudo:
+  #   - name: example_user
+  #     state: present
+  #   - name: former_user
+  #     state: absent
+  passwordless_sudo: []
+

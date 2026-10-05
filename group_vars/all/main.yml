@@ -20,19 +20,3 @@ tailscale:
   # Fill in your own tailnet ID and DNS name before running Tailscale tasks.
   tailnet_id: ""
   tailnet_dns_name: ""
-
-# Add your own usernames to the relevant lists, for example: [example_user].
-# Keep personal access configuration out of the public template.
-users:
-  login:
-    - xxx
-  login_deleted:
-    - xxx
-  odev_admins: 
-    - xxx
-  odev_developers: 
-    - xxx
-  odev_users: 
-    - xxx
-  passwordless_sudo: 
-    - xxx

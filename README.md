@@ -3,7 +3,7 @@
 </p>
 
 <!-- <p align="center" style="margin-bottom: 0px;">
-  <img src="https://github.com/oreolag/cli/blob/2026.3/CLI_blue.svg" 
+  <img src="https://github.com/oreolag/cli/blob/2026.3/CLI_blue.svg"
        align="center" style="width: 200px; height: auto;">
 </p> -->
 
@@ -95,7 +95,7 @@ Edit `hosts` to define your inventory groups and their servers. For example, if 
 ./ansible-play.sh passwordless_sudo_groupadd minix
 ```
 
-This configures passwordless sudo for the users specified in `group_vars/all.yml` on servers in the `minix` group. 
+This configures passwordless sudo for the users specified in `group_vars/all/users.yml` on servers in the `minix` group.
 
 ![](examples.gif)
 
