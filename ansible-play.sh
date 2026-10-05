@@ -93,6 +93,25 @@ if [[ $# -gt 0 && $1 != -* ]]; then
     done
 fi
 
+# Additional parameters for special playbooks. Extend this conditional as needed.
+playbook_name="${playbook##*/}"
+playbook_name="${playbook_name%.yml}"
+playbook_name="${playbook_name%.yaml}"
+playbook_name="${playbook_name#oreol.mgmt.}"
+if [[ $playbook_name == tailscale_install ]]; then
+    # Respect an explicitly supplied Vault password source.
+    vault_option=false
+    for option in "$@"; do
+        case "$option" in
+            -J|--ask-vault-pass|--ask-vault-password|--vault-password-file|--vault-password-file=*|--vault-pass-file|--vault-pass-file=*|--vault-id|--vault-id=*)
+                vault_option=true ;;
+        esac
+    done
+    if [[ $vault_option == false && -z ${ANSIBLE_VAULT_PASSWORD_FILE:-} ]]; then
+        args+=(--ask-vault-pass)
+    fi
+fi
+
 # Explicit inventories replace the default; forward their arguments unchanged.
 explicit_inventory=false
 for option in "$@"; do
