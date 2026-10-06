@@ -30,7 +30,7 @@ curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo 
 
 ### Publishing to GitHub
 
-After installation, you can publish your administration repository to a private GitHub repository to version and track changes to your inventory, variables, and CMDB:
+After installation, it is recommended to publish your administration repository to a private GitHub repository to track changes to your inventory, variables, and CMDB:
 
 ```bash
 cd my_oreol_mgmt
@@ -41,13 +41,11 @@ Replace `YOUR_USERNAME` with your GitHub username. If needed, run `gh auth login
 
 ### Updating Oreol Ansible Collection
 
-From your administration repository, run the following command to update [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) in the project's `collections` directory:
+To update the [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) and any other collections listed in `requirements.yml`, run:
 
 ```bash
 ./collections-update.sh
 ```
-
-For the plugin installation in `/opt/mgmt`, run `sudo ./collections-update.sh` from that directory.
 
 ### Supported Platforms
 `mgmt` currently supports macOS and the following Ubuntu-based Linux distributions:
