@@ -133,5 +133,8 @@ if ! command -v ansible-playbook >/dev/null 2>&1; then
 fi
 cd "$cluster_dir"
 export ANSIBLE_CONFIG="$cluster_dir/ansible.cfg"
+# Trust new SSH host keys automatically; still reject changed keys.
+# Keep inventory ssh_common_args (such as ProxyJump) separate and intact.
+export ANSIBLE_SSH_ARGS="${ANSIBLE_SSH_ARGS:--C -o ControlMaster=auto -o ControlPersist=60s} -o StrictHostKeyChecking=accept-new"
 printf 'Running %s on %s\n' "$playbook" "$target"
 exec ansible-playbook "$playbook" "${args[@]}" "$@"
