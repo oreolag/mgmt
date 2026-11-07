@@ -1,6 +1,9 @@
 ---
 # Template: configure these values for your own infrastructure before use.
-ansible_user: root
+
+# ansible (ansible_user must have an authorized SSH key, sudo access, and odev-admins membership)
+ansible_user: your_user 
+ansible_become: true
 ansible_become_method: sudo
 
 # banner
