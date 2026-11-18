@@ -64,7 +64,7 @@ if [[ "$installation_type" == "admin_local_repo" ]]; then
         exit 1
     fi
     gh_path="$(command -v gh)"
-    if ! github_user="$(sudo -H -u "$SUDO_USER" "$gh_path" api --hostname github.com user --jq .login)" ||
+    if ! github_user="$(sudo -H -u "$SUDO_USER" "$gh_path" api --hostname github.com user --jq .login 2>/dev/null)" ||
         [[ -z "$github_user" ]]; then
         echo "Login failed: use gh auth login" >&2
         exit 1
