@@ -43,6 +43,13 @@ _omgmt_complete() {
         [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
       done
       ;;
+    3)
+      [[ -f "$root/cmd/${COMP_WORDS[1]}/${COMP_WORDS[2]}.sh" &&
+         -x "$root/cmd/${COMP_WORDS[1]}/${COMP_WORDS[2]}.sh" ]] || return 0
+      for candidate in -h --help; do
+        [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
+      done
+      ;;
   esac
   return 0
 }
