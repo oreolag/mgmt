@@ -74,38 +74,39 @@
               - admin_repo_path | length > 0
             fail_msg: Run install.sh to select the administration repository destination.
 
-        - name: Check administration repository destination
+        - name: Verify the administration checkout supports omgmt
           ansible.builtin.stat:
-            path: "{{ admin_repo_path }}"
-            follow: false
-          register: admin_destination
+            path: "{{ admin_repo_path }}/{{ item }}"
+          loop:
+            - omgmt.sh
+            - omgmt_completion.sh
+            - ansible-play-completion.bash
+          register: admin_tooling
 
-        - name: Refuse to overwrite an existing destination
+        - name: Require current omgmt files
           ansible.builtin.assert:
             that:
-              - not admin_destination.stat.exists
-            fail_msg: "Destination already exists: {{ admin_repo_path }}"
+              - item.stat.isreg | default(false)
+            fail_msg: "{{ item.item }} is missing. Bring current mgmt tooling into the cluster repository and retry."
+          loop: "{{ admin_tooling.results }}"
+          loop_control:
+            label: "{{ item.item }}"
 
-        - name: Clone mgmt repository into {{ admin_repo_path }}
-          ansible.builtin.git:
-            repo: "{{ mgmt_repository }}"
-            dest: "{{ admin_repo_path }}"
-            version: main
-
-        - name: Initialize submodules at their recorded commits
+        - name: Install Oreol Ansible Collection as the invoking user
           ansible.builtin.command:
-            cmd: git submodule update --init --recursive
-            chdir: "{{ admin_repo_path }}"
-
-        - name: Install Oreol Ansible Collection
-          ansible.builtin.command:
-            cmd: ansible-galaxy collection install -r requirements.yml -p ./collections --force
-            chdir: "{{ admin_repo_path }}"
-          changed_when: true
-
-        - name: Disconnect the Oreol remote
-          ansible.builtin.command:
-            cmd: git remote remove origin
+            argv:
+              - sudo
+              - -H
+              - -u
+              - "{{ admin_repo_user }}"
+              - "{{ lookup('ansible.builtin.env', 'MGMT_ANSIBLE_GALAXY') }}"
+              - collection
+              - install
+              - -r
+              - requirements.yml
+              - -p
+              - ./collections
+              - --force
             chdir: "{{ admin_repo_path }}"
           changed_when: true
 
@@ -114,15 +115,6 @@
             argv: [id, -gn, "{{ admin_repo_user }}"]
           register: admin_group
           changed_when: false
-
-        - name: Give the administration repository to the invoking user
-          ansible.builtin.file:
-            path: "{{ admin_repo_path }}"
-            state: directory
-            owner: "{{ admin_repo_user }}"
-            group: "{{ admin_group.stdout }}"
-            recurse: true
-            follow: false
 
         - name: Find the invoking user's shell startup files
           ansible.builtin.command:
@@ -206,9 +198,8 @@
         - name: Show administration repository location
           ansible.builtin.debug:
             msg:
-              - "Created your administration repository at {{ admin_repo_path }}"
+              - "Administration repository is available at {{ admin_repo_path }}"
               - "Open a new Bash or Zsh session and run omgmt --help."
-              - "You can add your own GitHub remote."
 
       become: true
       when: admin_local_repo | bool
