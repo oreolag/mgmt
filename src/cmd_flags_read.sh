@@ -36,8 +36,9 @@ flags_var="${KEY}_FLAGS"
 declare -p "$flags_var" >/dev/null 2>&1 || exit 0
 
 # copy array safely
-eval "__cmd_flags_arr=( \"\${${flags_var}[@]}\" )"
+eval "__cmd_flags_arr=( \"\${${flags_var}[@]:-}\" )"
 
 for f in "${__cmd_flags_arr[@]:-}"; do
-  [[ -n "$f" ]] && echo "$f"
+  [[ -n "$f" ]] || continue
+  echo "$f"
 done

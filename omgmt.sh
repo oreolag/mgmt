@@ -49,6 +49,27 @@ print_help() {
   echo "  Read the manual at https://oreolag.github.io/docs/mgmt/"
 }
 
+print_command_help() {
+  local command="$1" subcommand="$2" key description flag_specs flag
+  local flags=()
+
+  if [[ -z "$subcommand" ]]; then
+    key="$command"
+    subcommand="$command"
+    command="-"
+  else
+    key="${command}_${subcommand}"
+  fi
+  key="$(printf '%s' "$key" | tr '[:lower:]' '[:upper:]')"
+  description="$("$OMGMT_PATH/src/cmd_description_read.sh" "$OMGMT_PATH" "$key")" || return 1
+  flag_specs="$("$OMGMT_PATH/src/cmd_flags_read.sh" "$OMGMT_PATH" "$key")" || return 1
+  while IFS= read -r flag; do
+    [[ -n "$flag" ]] && flags+=("$flag")
+  done <<< "$flag_specs"
+  "$OMGMT_PATH/src/cmd_help_print.sh" --print omgmt "$command" "$subcommand" \
+    "$description" 0 0 0 ${flags[@]+"${flags[@]}"}
+}
+
 print_version() {
   local ver date
 
@@ -114,6 +135,19 @@ fi
 if [[ ! -x "$script" ]]; then
   echo "Command not found: ${cmd} ${subcmd:-}"
   exit 1
+fi
+
+# Print help before the command checks its runtime dependencies.
+if [[ "$script" == "$OMGMT_PATH/cmd/"*/* || "$cmd" == update ]]; then
+  for arg in "$@"; do
+    case "$arg" in
+      -h|--help)
+        [[ "$cmd" != update ]] || subcmd=""
+        print_command_help "$cmd" "$subcmd"
+        exit $?
+        ;;
+    esac
+  done
 fi
 
 exec "$script" "$@"

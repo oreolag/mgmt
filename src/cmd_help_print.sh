@@ -114,7 +114,7 @@ elif [ ! "$COMMAND" = "" ] && [ ! "$SUBCOMMAND" = "" ]; then
 fi
 
 # print commands or flags
-for p in "${PARAMS[@]}"; do
+for p in ${PARAMS[@]+"${PARAMS[@]}"}; do
   IFS=',' read -r name short desc range def <<< "$p"
 
   [[ "$range" == "-" ]] && range=""
