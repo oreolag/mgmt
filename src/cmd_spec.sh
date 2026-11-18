@@ -4,7 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # derive from SCRIPT_DIR
-PLAYBOOKS_USER_PATH="${OMGMT_PATH:-$(dirname "$SCRIPT_DIR")}/playbooks"
+PLAYBOOKS_USER_PATH="${OMGMT_CLUSTER_PATH:-$HOME/my_oreol_mgmt}/playbooks"
 
 # format
 bold=$(tput bold 2>/dev/null || true)

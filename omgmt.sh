@@ -6,6 +6,7 @@ if [[ -L "$launcher" ]]; then
   launcher="$(readlink "$launcher")"
 fi
 export OMGMT_PATH="$(cd "$(dirname "$launcher")" && pwd)"
+export OMGMT_CLUSTER_PATH="${OMGMT_CLUSTER_PATH:-$HOME/my_oreol_mgmt}"
 
 # format
 bold=$(tput bold 2>/dev/null || true)

@@ -4,7 +4,6 @@ set -euo pipefail
 
 # inputs
 installation_type="${1:-admin_local_repo}"
-export MGMT_ADMIN_PATH="$PWD/my_oreol_mgmt"
 
 # format
 bold=$(tput bold 2>/dev/null || true)
@@ -107,10 +106,17 @@ echo ""
 echo "${bold}[INFO] Running installer...${normal}"
 
 if [ "$installation_type" = "admin_local_repo" ]; then
-    (
-        cd "$(dirname "$MGMT_ADMIN_PATH")"
-        sudo -H -u "$SUDO_USER" bash -s -- "$MGMT_ADMIN_PATH" "$github_user" "$gh_path" "$REPO_URL"
-    ) < src/admin-repo-install.sh
+    admin_home="$(sudo -H -u "$SUDO_USER" /bin/bash -c 'printf "%s" "$HOME"')"
+    export MGMT_ADMIN_PATH="$admin_home/my_oreol_mgmt"
+
+    # Dereference the CMDB template links so the cluster checkout is self-contained.
+    COPYFILE_DISABLE=1 tar -chf "$TMP_PATH/cluster.tar" --exclude='.DS_Store' hosts group_vars cmdb
+    COPYFILE_DISABLE=1 tar -cf "$TMP_PATH/software.tar" --exclude='.git' --exclude='.DS_Store' \
+        --exclude='./hosts' --exclude='./group_vars' --exclude='./cmdb' .
+    export MGMT_SOFTWARE_ARCHIVE="$TMP_PATH/software.tar"
+
+    sudo -H -u "$SUDO_USER" /bin/bash -c "$(cat src/admin-repo-install.sh)" \
+        admin-repo-install "$MGMT_ADMIN_PATH" "$github_user" "$gh_path" < "$TMP_PATH/cluster.tar"
     export MGMT_ANSIBLE_GALAXY="$(command -v ansible-galaxy)"
     ansible-playbook \
     -i localhost, \

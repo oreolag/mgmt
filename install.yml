@@ -74,42 +74,6 @@
               - admin_repo_path | length > 0
             fail_msg: Run install.sh to select the administration repository destination.
 
-        - name: Verify the administration checkout supports omgmt
-          ansible.builtin.stat:
-            path: "{{ admin_repo_path }}/{{ item }}"
-          loop:
-            - omgmt.sh
-            - omgmt_completion.sh
-            - ansible-play-completion.bash
-          register: admin_tooling
-
-        - name: Require current omgmt files
-          ansible.builtin.assert:
-            that:
-              - item.stat.isreg | default(false)
-            fail_msg: "{{ item.item }} is missing. Bring current mgmt tooling into the cluster repository and retry."
-          loop: "{{ admin_tooling.results }}"
-          loop_control:
-            label: "{{ item.item }}"
-
-        - name: Install Oreol Ansible Collection as the invoking user
-          ansible.builtin.command:
-            argv:
-              - sudo
-              - -H
-              - -u
-              - "{{ admin_repo_user }}"
-              - "{{ lookup('ansible.builtin.env', 'MGMT_ANSIBLE_GALAXY') }}"
-              - collection
-              - install
-              - -r
-              - requirements.yml
-              - -p
-              - ./collections
-              - --force
-            chdir: "{{ admin_repo_path }}"
-          changed_when: true
-
         - name: Find the invoking user's primary group
           ansible.builtin.command:
             argv: [id, -gn, "{{ admin_repo_user }}"]
@@ -138,17 +102,43 @@
           register: admin_shell
           changed_when: false
 
-        - name: Create user completion directory
+        - name: Create the omgmt software directory
           ansible.builtin.file:
-            path: "{{ (admin_shell.stdout | from_json).home }}/.local/share/omgmt"
+            path: "{{ admin_software_path }}"
             state: directory
             owner: "{{ admin_repo_user }}"
             group: "{{ admin_group.stdout }}"
             mode: "0755"
 
+        - name: Install the omgmt software snapshot
+          ansible.builtin.shell:
+            cmd: >-
+              sudo -H -u {{ admin_repo_user | quote }}
+              /usr/bin/tar -xf - -C {{ admin_software_path | quote }}
+              < {{ lookup('ansible.builtin.env', 'MGMT_SOFTWARE_ARCHIVE') | quote }}
+          changed_when: true
+
+        - name: Install Oreol Ansible Collection as the invoking user
+          ansible.builtin.command:
+            argv:
+              - sudo
+              - -H
+              - -u
+              - "{{ admin_repo_user }}"
+              - "{{ lookup('ansible.builtin.env', 'MGMT_ANSIBLE_GALAXY') }}"
+              - collection
+              - install
+              - -r
+              - requirements.yml
+              - -p
+              - ./collections
+              - --force
+            chdir: "{{ admin_software_path }}"
+          changed_when: true
+
         - name: Install user completion for ansible-play.sh
           ansible.builtin.copy:
-            src: "{{ admin_repo_path }}/ansible-play-completion.bash"
+            src: "{{ admin_software_path }}/ansible-play-completion.bash"
             dest: "{{ (admin_shell.stdout | from_json).home }}/.local/share/omgmt/ansible-play-completion.bash"
             remote_src: true
             owner: "{{ admin_repo_user }}"
@@ -165,7 +155,7 @@
 
         - name: Link omgmt into the invoking user's bin directory
           ansible.builtin.file:
-            src: "{{ admin_repo_path }}/omgmt.sh"
+            src: "{{ admin_software_path }}/omgmt.sh"
             path: "{{ (admin_shell.stdout | from_json).home }}/.local/bin/omgmt"
             state: link
             owner: "{{ admin_repo_user }}"
@@ -189,8 +179,8 @@
                   if [ -r "$HOME/.local/share/omgmt/ansible-play-completion.bash" ]; then
                       . "$HOME/.local/share/omgmt/ansible-play-completion.bash"
                   fi
-                  if [ -r {{ (admin_repo_path ~ '/omgmt_completion.sh') | quote }} ]; then
-                      . {{ (admin_repo_path ~ '/omgmt_completion.sh') | quote }}
+                  if [ -r {{ (admin_software_path ~ '/omgmt_completion.sh') | quote }} ]; then
+                      . {{ (admin_software_path ~ '/omgmt_completion.sh') | quote }}
                   fi
               fi
           loop: "{{ (admin_shell.stdout | from_json).files }}"
@@ -201,6 +191,8 @@
               - "Administration repository is available at {{ admin_repo_path }}"
               - "Open a new Bash or Zsh session and run omgmt --help."
 
+      vars:
+        admin_software_path: "{{ (admin_shell.stdout | from_json).home }}/.local/share/omgmt/software"
       become: true
       when: admin_local_repo | bool
     

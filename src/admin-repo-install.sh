@@ -4,7 +4,6 @@ set -euo pipefail
 destination="$1"
 github_user="$2"
 gh_path="$3"
-upstream_url="$4"
 repo="$github_user/my_oreol_mgmt"
 repo_url="https://github.com/$repo.git"
 
@@ -52,23 +51,16 @@ if [[ -z "$visibility" ]] || ! git -C "$checkout" rev-parse --verify HEAD >/dev/
         # Keep the empty clone inside staging until the installer exits.
         mv "$checkout" "$staging/empty"
     fi
-    git clone --branch main "$upstream_url" "$checkout"
-    git -C "$checkout" remote rename origin upstream
+    git init -q "$checkout"
+    git -C "$checkout" symbolic-ref HEAD refs/heads/main
     git -C "$checkout" remote add origin "$repo_url"
-    git -C "$checkout" submodule update --init --recursive
-
-    # Make the starter CMDB entries editable without changing the CLI submodule.
-    for template in "$checkout"/cmdb/*.yml; do
-        [[ -L "$template" ]] || continue
-        cp -L "$template" "$staging/template.yml"
-        mv "$staging/template.yml" "$template"
-        git -C "$checkout" add -- "${template#"$checkout"/}"
-    done
-    if ! git -C "$checkout" diff --cached --quiet; then
-        git -C "$checkout" \
-            -c "user.name=$github_user" -c "user.email=$github_user@users.noreply.github.com" \
-            commit -m "Seed editable cluster CMDB templates"
-    fi
+    tar -xf - -C "$checkout"
+    mkdir -p "$checkout/playbooks" "$checkout/roles"
+    touch "$checkout/playbooks/.gitkeep" "$checkout/roles/.gitkeep"
+    git -C "$checkout" add -- hosts group_vars cmdb playbooks roles
+    git -C "$checkout" \
+        -c "user.name=$github_user" -c "user.email=$github_user@users.noreply.github.com" \
+        commit -m "Seed cluster configuration"
 
     if [[ -z "$visibility" ]]; then
         "$gh_path" repo create "$repo" --private
@@ -76,9 +68,7 @@ if [[ -z "$visibility" ]] || ! git -C "$checkout" rev-parse --verify HEAD >/dev/
     github_git -C "$checkout" push -u origin HEAD:refs/heads/main
 else
     git -C "$checkout" submodule update --init --recursive
-    if ! git -C "$checkout" remote get-url upstream >/dev/null 2>&1; then
-        git -C "$checkout" remote add upstream "$upstream_url"
-    fi
+
 fi
 
 # Reserve the destination so a concurrent install cannot overwrite a checkout.
