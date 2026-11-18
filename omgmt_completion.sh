@@ -1,359 +1,45 @@
 #!/usr/bin/env bash
-#
-# Bash completion for odev
-#
-
-# ------------------------------------------------------------
-# Resolve odev root directory
-# ------------------------------------------------------------
-_odev_script_dir() {
-  local odev_path
-  odev_path="$(command -v odev 2>/dev/null || true)"
-
-  if [[ -n "${ODEV_PATH:-}" && -d "$ODEV_PATH" ]]; then
-    echo "$ODEV_PATH"
-    return
+# Top-level and subcommand completion for the management CLI.
+if [[ -n ${ZSH_VERSION:-} ]] && ! typeset -f complete >/dev/null; then
+  autoload -Uz compinit bashcompinit
+  if ! typeset -f compdef >/dev/null; then
+    compinit
   fi
-
-  if [[ -n "$odev_path" && -e "$odev_path" ]]; then
-    echo "$(cd "$(dirname "$odev_path")" && pwd)"
-    return
-  fi
-
-  pwd
-}
-
-# ------------------------------------------------------------
-# Filesystem-based commands
-# ------------------------------------------------------------
-_odev_list_commands() {
-  local root="$1"
-  find "$root" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort
-}
-
-_odev_list_subcommands() {
-  local root="$1"
-  local cmd="$2"
-  local candidate name resolved
-  for candidate in "$root/$cmd/"*.sh "$root/../users/$(id -un)/workflows/$cmd/"*.sh; do
-    [[ -f "$candidate" ]] || continue
-    name="${candidate##*/}"
-    name="${name%.sh}"
-    resolved="$("$root/../src/workflow_command_path.sh" "$root/.." "$cmd" "$name")" || continue
-    [[ -f "$resolved" ]] && printf '%s\n' "$name"
-  done | sort -u
-}
-
-# ------------------------------------------------------------
-# Load flags definitions
-# ------------------------------------------------------------
-_odev_source_flags() {
-  local base="$1"
-  local KEY
-  KEY="$(printf '%s' "${2:-GENERAL}" | tr '[:lower:]' '[:upper:]')"
-
-  #if [[ -f "$base/src/command_flags.sh" ]]; then
-  #  # shellcheck source=/dev/null
-  #  source "$base/src/command_flags.sh"
-  #  return 0
-  #fi
-
-  if [[ -f "$base/src/cmd_spec.sh" ]]; then
-    # shellcheck source=/dev/null
-    source "$base/src/cmd_spec.sh" || return 1
-    return 0
-  fi
-
-  return 0
-}
-
-# ------------------------------------------------------------
-# Completion function
-# ------------------------------------------------------------
-_odev_completions() {
-
-  # only allow odev-users (similar to is_member.sh)
-  if ! getent group "odev-users" | grep -q "$USER"; then
-    COMPREPLY=()
-    return 0
-  fi
-
-  local cur prev words cword
-  _init_completion -n : || return
-
-  local base root
-  base="$(_odev_script_dir)"
-  root="$base/cmd"
-
-  _odev_source_flags "$base" "${words[1]:-GENERAL}" || return 0
-
-  # -----------------------------
-  # Global flags (odev --<TAB>)
-  # -----------------------------
-  if [[ $cword -eq 1 && "$cur" == -* ]]; then
-    COMPREPLY=( $(compgen -W "--help -h --version -v" -- "$cur") )
-    return 0
-  fi
-
-  # -----------------------------
-  # Top-level commands (odev <TAB>)
-  # -----------------------------
-  if [[ $cword -eq 1 ]]; then
-    local extra_cmds="examine update ifconfig"
-    local cmds
-    cmds="$(_odev_list_commands "$root") $extra_cmds"
-    COMPREPLY=( $(compgen -W "$cmds" -- "$cur") )
-    return 0
-  fi
-
-  # -----------------------------
-  # Always offer --help/-h for top-level commands (odev <cmd> --<TAB>)
-  # Also support flags for single-command scripts like:
-  #   odev examine --<TAB>
-  # -----------------------------
-  if [[ $cword -eq 2 && "$cur" == -* ]]; then
-    local cmd="${words[1]}"
-    local script="$root/${cmd}.sh"
-
-    if [[ -f "$script" ]]; then
-      local cmd_u varname
-      cmd_u="$(printf '%s' "$cmd" | tr '[:lower:]' '[:upper:]')"
-      varname="${cmd_u}_FLAGS"
-
-      local -a flags=()
-      if eval "[[ \${#${varname}[@]} -gt 0 ]]"; then
-        eval "flags=(\"\${${varname}[@]}\")"
-      fi
-
-      local -a opts=(--help -h)
-      local entry name short rest
-      for entry in "${flags[@]}"; do
-        IFS=',' read -r name short rest <<< "$entry"
-        [[ -n "$name" ]] && opts+=("--$name")
-        [[ -n "$short" ]] && opts+=("-$short")
-      done
-
-      COMPREPLY=( $(compgen -W "${opts[*]}" -- "$cur") )
-      return 0
-    fi
-
-    COMPREPLY=( $(compgen -W "--help -h" -- "$cur") )
-    return 0
-  fi
-
-  # -----------------------------
-  # Subcommands (odev <cmd> <TAB>)
-  # -----------------------------
-  if [[ $cword -eq 2 ]]; then
-    local cmd="${words[1]}"
-    COMPREPLY=( $(compgen -W "$(_odev_list_subcommands "$root" "$cmd")" -- "$cur") )
-    return 0
-  fi
-
-  # Names for Git operations; pull selects a repository without a name.
-  if [[ $cword -ge 3 && "${words[1]}" == "gh" && "${words[2]}" != "pull" ]]; then
-    local candidate name
-    if [[ "$prev" == "--workflow" || "$prev" == "-w" ]]; then
-      COMPREPLY=()
-      for candidate in "$WORKFLOWS_USER_PATH/"*/; do
-        [[ -d "$candidate" ]] || continue
-        name="${candidate%/}"
-        name="${name##*/}"
-        [[ "$name" == "$cur"* ]] && COMPREPLY+=("$name")
-      done
-      return 0
-    elif [[ "$prev" == "--playbook" || "$prev" == "-p" ]]; then
-      COMPREPLY=()
-      for candidate in "$PLAYBOOKS_USER_PATH/"*.yml; do
-        [[ -f "$candidate" ]] || continue
-        name="${candidate##*/}"
-        [[ "$name" == *_vars.yml ]] && continue
-        name="${name%.yml}"
-        [[ "$name" == "$cur"* ]] && COMPREPLY+=("$name")
-      done
-      return 0
-    fi
-  fi
-
-  # Generated inventory groups for playbooks, MTU and workflow programming.
-  if [[ $cword -ge 3 && "$prev" == "--hosts" &&
-        ( ( "${words[1]}" == "run" && "${words[2]}" == "playbook" ) ||
-          ( "${words[1]}" == "set" && "${words[2]}" == "mtu" ) ||
-          "${words[1]}" == "program" ) ]]; then
-    COMPREPLY=( $(compgen -W "local remote all" -- "$cur") )
-    return 0
-  fi
-
-  # Playbook names from the user's configured checkout.
-  if [[ $cword -ge 3 && "${words[1]}" == "run" && "${words[2]}" == "playbook" &&
-        ( "$prev" == "--name" || "$prev" == "-n" ) ]]; then
-    local candidate name
-    COMPREPLY=()
-    for candidate in "$PLAYBOOKS_USER_PATH/"*.yml; do
-      [[ -f "$candidate" ]] || continue
-      name="${candidate##*/}"
-      [[ "$name" == *_vars.yml ]] && continue
-      name="${name%.yml}"
-      [[ "$name" == "$cur"* ]] && COMPREPLY+=("$name")
-    done
-    return 0
-  fi
-
-  # Existing project names for workflow actions.
-  if [[ $cword -ge 3 && ( "$prev" == "--name" || "$prev" == "-n" ) &&
-        "${words[2]}" != "playbook" && "${words[2]}" != "workflow" ]]; then
-    case "${words[1]}" in
-      run|build|program|validate|delete)
-        local projects_path candidate name
-        COMPREPLY=()
-        projects_path="$(python3 "$base/src/odev_path.py" projects 2>/dev/null)" || return 0
-        for candidate in "$projects_path/${words[2]}/"*/; do
-          [[ -d "$candidate" ]] || continue
-          name="${candidate%/}"
-          name="${name##*/}"
-          [[ "$name" == "$cur"* ]] && COMPREPLY+=("$name")
-        done
-        return 0
-        ;;
-    esac
-  fi
-
-  # -----------------------------
-  # Subcommand flags (odev <cmd> <subcmd> --<TAB>)
-  # -----------------------------
-  if [[ $cword -ge 3 && "$cur" == -* ]]; then
-    local cmd="${words[1]}"
-    local subcmd="${words[2]}"
-
-    # build uppercase variable name: e.g. VALIDATE_NCCL_FLAGS
-    local cmd_u sub_u varname
-    cmd_u="$(printf '%s' "$cmd" | tr '[:lower:]' '[:upper:]')"
-    sub_u="$(printf '%s' "$subcmd" | tr '[:lower:]' '[:upper:]')"
-    varname="${cmd_u}_${sub_u}_FLAGS"
-
-    # Pull array by name robustly
-    local -a flags=()
-    if eval "[[ \${#${varname}[@]} -gt 0 ]]"; then
-      eval "flags=(\"\${${varname}[@]}\")"
-    fi
-
-    # Build option lists and maps
-    local -a opts=()
-    declare -A long_to_short=()
-    declare -A short_to_long=()
-
-    local entry name short rest
-    for entry in "${flags[@]}"; do
-      # entry format: "name,short,Description,range,default"
-      IFS=',' read -r name short rest <<< "$entry"
-      if [[ -n "$name" ]]; then
-        opts+=("--$name")
-      fi
-      if [[ -n "$short" ]]; then
-        opts+=("-$short")
-      fi
-      # mappings for exclusion later
-      if [[ -n "$name" && -n "$short" ]]; then
-        long_to_short["$name"]="$short"
-        short_to_long["$short"]="$name"
-      fi
-    done
-
-    # Collect flags already present in the command line (words[1]..words[cword-1])
-    declare -A used=()
-    local i w key stripped other_used=false help_used=false
-    for (( i=1; i < cword; i++ )); do
-      w="${words[i]}"
-      # long form --foo or --foo=bar
-      if [[ "$w" == --* ]]; then
-        # strip leading -- and any =value
-        stripped="${w#--}"
-        key="${stripped%%=*}"
-        used["--$key"]=1
-        # if we know a short alias, mark it used too
-        if [[ -n "${long_to_short[$key]:-}" ]]; then
-          used["-${long_to_short[$key]}"]=1
-        fi
-        # mark that a non-help flag has been used
-        if [[ "$key" != "help" ]]; then
-          other_used=true
-        else
-          help_used=true
-        fi
-      elif [[ "$w" == -? ]]; then
-        # short form -x
-        key="${w#-}"
-        used["-$key"]=1
-        # if we know long alias, mark long used too
-        if [[ -n "${short_to_long[$key]:-}" ]]; then
-          used["--${short_to_long[$key]}"]=1
-          if [[ "${short_to_long[$key]}" != "help" ]]; then
-            other_used=true
-          else
-            help_used=true
-          fi
-        else
-          # plain short (not mapped), treat it as "other used" unless it's -h
-          if [[ "$key" != "h" ]]; then
-            other_used=true
-          else
-            help_used=true
-          fi
-        fi
-      fi
-      # Note: combined shorts (e.g. -ab) are not specially parsed here.
-    done
-
-    # If help was used, do not offer any other flags (and don't re-offer help)
-    if [[ "$help_used" = true ]]; then
-      COMPREPLY=()
-      return 0
-    fi
-
-    # Only include --help/-h if no other flags are present so far
-    if [[ "$other_used" = false ]]; then
-      opts+=(--help -h)
-    fi
-
-    # Filter out used options
-    local -a filtered=()
-    local o
-    for o in "${opts[@]}"; do
-      [[ -n "${used[$o]:-}" ]] && continue
-      filtered+=("$o")
-    done
-
-    # remove duplicates (stable)
-    local -A seen=()
-    local -a uniq_opts=()
-    for o in "${filtered[@]}"; do
-      [[ -n "$o" && -z "${seen[$o]:-}" ]] || continue
-      uniq_opts+=("$o")
-      seen["$o"]=1
-    done
-
-    COMPREPLY=( $(compgen -W "${uniq_opts[*]}" -- "$cur") )
-    return 0
-  fi
-
-  return 0
-}
-
-# ------------------------------------------------------------
-# Minimal fallback if bash-completion is not loaded
-# ------------------------------------------------------------
-if ! declare -F _init_completion >/dev/null 2>&1; then
-  _init_completion() {
-    COMPREPLY=()
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
-    words=("${COMP_WORDS[@]}")
-    cword="$COMP_CWORD"
-    return 0
-  }
+  bashcompinit
 fi
 
-# ------------------------------------------------------------
-# Register completion
-# ------------------------------------------------------------
-complete -F _odev_completions odev
+_omgmt_complete() {
+  local current command_path root file candidate
+  COMPREPLY=()
+  current=${COMP_WORDS[COMP_CWORD]}
+  command_path=$(command -v -- "${COMP_WORDS[0]}") || return 0
+  if [[ -L "$command_path" ]]; then
+    command_path=$(readlink "$command_path") || return 0
+  fi
+  root=$(cd -- "$(dirname -- "$command_path")" && pwd) || return 0
+
+  case $COMP_CWORD in
+    1)
+      for candidate in --help --version; do
+        [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
+      done
+      for file in "$root"/cmd/*.sh; do
+        [[ -x "$file" ]] || continue
+        candidate=${file##*/}
+        candidate=${candidate%.sh}
+        [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
+      done
+      ;;
+    2)
+      for file in "$root/cmd/${COMP_WORDS[1]}"/*.sh; do
+        [[ -x "$file" ]] || continue
+        candidate=${file##*/}
+        candidate=${candidate%.sh}
+        [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
+      done
+      ;;
+  esac
+  return 0
+}
+
+complete -F _omgmt_complete omgmt
