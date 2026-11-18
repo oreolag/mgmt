@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Top-level and subcommand completion for the management CLI.
+# Complete management commands and the flags defined in cmd_spec.sh.
 if [[ -n ${ZSH_VERSION:-} ]] && ! typeset -f complete >/dev/null; then
   autoload -Uz compinit bashcompinit
   if ! typeset -f compdef >/dev/null; then
@@ -9,7 +9,7 @@ if [[ -n ${ZSH_VERSION:-} ]] && ! typeset -f complete >/dev/null; then
 fi
 
 _omgmt_complete() {
-  local current command_path root file candidate
+  local current command_path root file candidate key flag_specs name short
   COMPREPLY=()
   current=${COMP_WORDS[COMP_CWORD]}
   command_path=$(command -v -- "${COMP_WORDS[0]}") || return 0
@@ -43,10 +43,18 @@ _omgmt_complete() {
         [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
       done
       ;;
-    3)
+    *)
       [[ -f "$root/cmd/${COMP_WORDS[1]}/${COMP_WORDS[2]}.sh" &&
          -x "$root/cmd/${COMP_WORDS[1]}/${COMP_WORDS[2]}.sh" ]] || return 0
-      for candidate in -h --help; do
+      key="$(printf '%s_%s' "${COMP_WORDS[1]}" "${COMP_WORDS[2]}" | tr '[:lower:]' '[:upper:]')"
+      flag_specs="$("$root/src/cmd_flags_read.sh" "$root" "$key")" || return 0
+      local candidates=(-h --help)
+      while IFS=, read -r name short _; do
+        [[ -n "$name" ]] || continue
+        candidates+=("--$name")
+        [[ -z "$short" ]] || candidates+=("-$short")
+      done <<< "$flag_specs"
+      for candidate in "${candidates[@]}"; do
         [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
       done
       ;;
