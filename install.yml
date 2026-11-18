@@ -148,7 +148,7 @@
 
         - name: Create user completion directory
           ansible.builtin.file:
-            path: "{{ (admin_shell.stdout | from_json).home }}/.local/share/mgmt"
+            path: "{{ (admin_shell.stdout | from_json).home }}/.local/share/omgmt"
             state: directory
             owner: "{{ admin_repo_user }}"
             group: "{{ admin_group.stdout }}"
@@ -157,7 +157,7 @@
         - name: Install user completion for ansible-play.sh
           ansible.builtin.copy:
             src: "{{ admin_repo_path }}/ansible-play-completion.bash"
-            dest: "{{ (admin_shell.stdout | from_json).home }}/.local/share/mgmt/ansible-play-completion.bash"
+            dest: "{{ (admin_shell.stdout | from_json).home }}/.local/share/omgmt/ansible-play-completion.bash"
             remote_src: true
             owner: "{{ admin_repo_user }}"
             group: "{{ admin_group.stdout }}"
@@ -172,8 +172,8 @@
             mode: "0644"
             marker: "# {mark} Oreol mgmt completion"
             block: |
-              if [ -n "${BASH_VERSION:-}${ZSH_VERSION:-}" ] && [ -r "$HOME/.local/share/mgmt/ansible-play-completion.bash" ]; then
-                  . "$HOME/.local/share/mgmt/ansible-play-completion.bash"
+              if [ -n "${BASH_VERSION:-}${ZSH_VERSION:-}" ] && [ -r "$HOME/.local/share/omgmt/ansible-play-completion.bash" ]; then
+                  . "$HOME/.local/share/omgmt/ansible-play-completion.bash"
               fi
           loop: "{{ (admin_shell.stdout | from_json).files }}"
 
@@ -198,23 +198,23 @@
             state: present
             update_cache: true
 
-        - name: Remove {{ mgmt_remote_path }}/mgmt if it exists
+        - name: Remove {{ mgmt_remote_path }}/omgmt if it exists
           ansible.builtin.file:
-            path: "{{ mgmt_remote_path }}/mgmt"
+            path: "{{ mgmt_remote_path }}/omgmt"
             state: absent
 
-        - name: Create {{ mgmt_remote_path }}/mgmt
+        - name: Create {{ mgmt_remote_path }}/omgmt
           ansible.builtin.file:
-            path: "{{ mgmt_remote_path }}/mgmt"
+            path: "{{ mgmt_remote_path }}/omgmt"
             state: directory
             owner: root
             group: root
             mode: "0755"
 
-        - name: Clone mgmt repository into {{ mgmt_remote_path }}/mgmt
+        - name: Clone mgmt repository into {{ mgmt_remote_path }}/omgmt
           ansible.builtin.git:
             repo: "{{ mgmt_repository }}"
-            dest: "{{ mgmt_remote_path }}/mgmt"
+            dest: "{{ mgmt_remote_path }}/omgmt"
             version: main
             update: true
             force: true
@@ -222,12 +222,12 @@
         - name: Update all submodules
           ansible.builtin.command:
             cmd: git submodule update --init --recursive --remote --merge
-            chdir: "{{ mgmt_remote_path }}/mgmt"
+            chdir: "{{ mgmt_remote_path }}/omgmt"
 
         - name: Install Oreol Ansible Collection
           ansible.builtin.command:
             cmd: ansible-galaxy collection install -r requirements.yml -p ./collections --force
-            chdir: "{{ mgmt_remote_path }}/mgmt"
+            chdir: "{{ mgmt_remote_path }}/omgmt"
           changed_when: true
 
         - name: Check whether CMDB exists
@@ -238,7 +238,7 @@
         - name: Copy CMDB if exists
           ansible.builtin.copy:
             src: "{{ mgmt_remote_path }}/cmdb/"
-            dest: "{{ mgmt_remote_path }}/mgmt/cmdb/"
+            dest: "{{ mgmt_remote_path }}/omgmt/cmdb/"
             remote_src: true
             mode: preserve
           when: cmdb_source.stat.isdir | default(false)
@@ -256,7 +256,7 @@
         # Install completion (system-wide)
         - name: Install bash completion for ansible-play.sh
           ansible.builtin.copy:
-            src: "{{ mgmt_remote_path }}/mgmt/ansible-play-completion.bash"
+            src: "{{ mgmt_remote_path }}/omgmt/ansible-play-completion.bash"
             dest: "/usr/share/bash-completion/completions/ansible-play.sh"
             remote_src: true
             owner: root
