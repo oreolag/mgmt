@@ -67,10 +67,10 @@ if [[ -z "$visibility" ]] || ! git -C "$checkout" rev-parse --verify HEAD >/dev/
     git init -q "$checkout"
     git -C "$checkout" symbolic-ref HEAD refs/heads/main
     git -C "$checkout" remote add origin "$repo_url"
-    tar -xf - -C "$checkout"
-    mkdir -p "$checkout/playbooks" "$checkout/roles"
+    mkdir -p "$checkout/clusters/example" "$checkout/playbooks" "$checkout/roles"
+    tar -xf - -C "$checkout/clusters/example"
     touch "$checkout/playbooks/.gitkeep" "$checkout/roles/.gitkeep"
-    git -C "$checkout" add -- hosts group_vars cmdb playbooks roles
+    git -C "$checkout" add -- clusters/example playbooks roles
     git -C "$checkout" \
         -c "user.name=$github_user" -c "user.email=$github_user@users.noreply.github.com" \
         commit -m "Seed cluster configuration"
