@@ -27,8 +27,21 @@ if [[ -e "$destination" || -L "$destination" ]]; then
 fi
 
 if ! visibility="$("$gh_path" api --hostname github.com --paginate \
-    'user/repos?affiliation=owner&per_page=100' \
-    --jq ".[] | select(.full_name == \"$repo\") | .visibility")"; then
+    'user/repos?affiliation=owner&per_page=100' | python3 -c '
+import json
+import sys
+
+decoder = json.JSONDecoder()
+pages = sys.stdin.read().lstrip()
+visibility = ""
+while pages:
+    repositories, end = decoder.raw_decode(pages)
+    for repository in repositories:
+        if repository["full_name"] == sys.argv[1]:
+            visibility = repository["visibility"]
+    pages = pages[end:].lstrip()
+print(visibility)
+' "$repo")"; then
     printf 'Could not check GitHub repository %s.\n' "$repo" >&2
     exit 1
 fi
