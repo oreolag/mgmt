@@ -12,6 +12,32 @@ bold=$(tput bold 2>/dev/null || true)
 italic=$(tput sitm 2>/dev/null || true)
 normal=$(tput sgr0 2>/dev/null || true)
 
+print_server_status() {
+  local github_user ts_user
+  printf '\n%sSERVER STATUS%s\n' "$bold" "$normal"
+
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "  Please install the GitHub CLI"
+  elif github_user="$(gh api --hostname github.com user --jq .login 2>/dev/null)" && [[ -n "$github_user" ]]; then
+    printf '  You are logged into the GitHub CLI as %s%s%s\n' "$bold" "$github_user" "$normal"
+  else
+    printf '  GitHub CLI account unavailable. To log in, use %sgh auth login%s\n' "$bold" "$normal"
+  fi
+
+  if ! command -v tailscale >/dev/null 2>&1; then
+    echo "  Please install the Tailscale CLI"
+  elif [[ "$("$OMGMT_PATH/src/tailscale_auth_status.sh")" == 1 ]]; then
+    if ts_user="$(tailscale whoami 2>/dev/null | awk '/^User:/ {user=1; next} user && $1 == "Name:" {print $2; exit}')" &&
+       [[ -n "$ts_user" ]]; then
+      printf '  Tailscale is connected as %s%s%s\n' "$bold" "$ts_user" "$normal"
+    else
+      echo "  Tailscale is connected"
+    fi
+  else
+    echo "  Tailscale is not connected"
+  fi
+}
+
 print_help() {
   local command_descriptions key description gh_description update new run delete
   command_descriptions="$("$OMGMT_PATH/src/cmd_description_read.sh" "$OMGMT_PATH" "ALL")"
@@ -38,8 +64,10 @@ print_help() {
   echo "${bold}FLAGS${normal}"
   echo "  -h, --help       Show help for command"
   echo "  -v, --version    Show omgmt version"
-  echo ""
 
+  print_server_status
+
+  echo ""
   echo "${bold}EXAMPLES${normal}"
   echo "  $ omgmt run playbook"
 
