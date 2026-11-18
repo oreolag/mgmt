@@ -67,13 +67,12 @@ if [[ -z "$visibility" ]] || ! git -C "$checkout" rev-parse --verify HEAD >/dev/
     git init -q "$checkout"
     git -C "$checkout" symbolic-ref HEAD refs/heads/main
     git -C "$checkout" remote add origin "$repo_url"
-    mkdir -p "$checkout/clusters/example" "$checkout/playbooks" "$checkout/roles"
-    tar -xf - -C "$checkout/clusters/example"
-    touch "$checkout/playbooks/.gitkeep" "$checkout/roles/.gitkeep"
-    git -C "$checkout" add -- clusters/example playbooks roles
+    mkdir -p "$checkout/clusters" "$checkout/playbooks" "$checkout/roles"
+    touch "$checkout/clusters/.gitkeep" "$checkout/playbooks/.gitkeep" "$checkout/roles/.gitkeep"
+    git -C "$checkout" add -- clusters playbooks roles
     git -C "$checkout" \
         -c "user.name=$github_user" -c "user.email=$github_user@users.noreply.github.com" \
-        commit -m "Seed cluster configuration"
+        commit -m "Initialize management repository"
 
     if [[ -z "$visibility" ]]; then
         "$gh_path" repo create "$repo" --private
