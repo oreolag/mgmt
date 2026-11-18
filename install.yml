@@ -9,7 +9,6 @@
     ansible_python_interpreter: /usr/bin/python3
     mgmt_remote_path: /opt
     mgmt_repository: "https://github.com/oreolag/mgmt.git"
-    admin_repo_path: "{{ lookup('ansible.builtin.env', 'MGMT_ADMIN_PATH') }}"
     admin_repo_user: "{{ lookup('ansible.builtin.env', 'SUDO_USER') or 'root' }}"
     # control variables
     #delete: false
@@ -68,12 +67,6 @@
 
     # admin_local_repo
     - block:
-        - name: Require an administration repository path
-          ansible.builtin.assert:
-            that:
-              - admin_repo_path | length > 0
-            fail_msg: Run install.sh to select the administration repository destination.
-
         - name: Find the invoking user's primary group
           ansible.builtin.command:
             argv: [id, -gn, "{{ admin_repo_user }}"]
@@ -185,10 +178,10 @@
               fi
           loop: "{{ (admin_shell.stdout | from_json).files }}"
 
-        - name: Show administration repository location
+        - name: Show omgmt installation location
           ansible.builtin.debug:
             msg:
-              - "Administration repository is available at {{ admin_repo_path }}"
+              - "omgmt software is available at {{ admin_software_path }}"
               - "Open a new Bash or Zsh session and run omgmt --help."
 
       vars:
