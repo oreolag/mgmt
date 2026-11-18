@@ -184,6 +184,30 @@
               - "Run ./ansible-play.sh test local from that directory."
               - "You can rename the directory and add your own GitHub remote."
               - "Open a new Bash or Zsh session to enable Tab completion."
+
+        - name: Copy omgmt with executable mode (0755)
+          ansible.builtin.copy:
+            src: "{{ cli.local_path }}/omgmt.sh"
+            dest: "{{ cli_remote_path }}/omgmt/omgmt"
+            owner: root
+            group: root
+            mode: "0755"
+        - name: Copy omgmt_completion.sh with executable mode
+          ansible.builtin.copy:
+            src: "{{ cli.local_path }}/omgmt_completion.sh"
+            dest: "{{ cli_remote_path }}/omgmt/omgmt_completion.sh"
+            owner: root
+            group: root
+            mode: "0644"
+        - name: Install bash completion for omgmt
+          ansible.builtin.copy:
+            src: "{{ cli_remote_path }}/omgmt/omgmt_completion.sh"
+            dest: "/usr/share/bash-completion/completions/omgmt"
+            remote_src: true
+            owner: root
+            group: root
+            mode: "0644"
+
       become: true
       when: admin_local_repo | bool
     

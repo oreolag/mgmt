@@ -26,23 +26,23 @@ while IFS='=' read -r key description; do
 done <<< "$command_descriptions"
 
 # check on GitHub CLI
-#installed="$("$ODEV_PATH/src/required_tools_print.sh" "$ODEV_PATH" "gh")"
-#gh_status=""
-#wf_repo_status=""
-#pb_repo_status=""
-#if [[ "$installed" == "1" ]]; then
-#  logged_in="$("$ODEV_PATH/src/gh_auth_status.sh")"
-#  if [[ "$logged_in" == "1" ]]; then
-#    github_user="$(gh api user --jq .login 2>/dev/null)" || github_user=""
-#    if [[ -n "$github_user" ]]; then
-#      gh_status="You are logged into the GitHub CLI as ${bold}$github_user${normal}"
-#    fi   
-#  else
-#    gh_status="Please authenticate with the GitHub CLI using ${bold}gh auth login${normal}"
-#  fi
-#else
-#  gh_status="Please install the GitHub CLI"
-#fi
+installed="$("$ODEV_PATH/src/required_tools_print.sh" "$ODEV_PATH" "gh")"
+gh_status=""
+wf_repo_status=""
+pb_repo_status=""
+if [[ "$installed" == "1" ]]; then
+  logged_in="$("$ODEV_PATH/src/gh_auth_status.sh")"
+  if [[ "$logged_in" == "1" ]]; then
+    github_user="$(gh api user --jq .login 2>/dev/null)" || github_user=""
+    if [[ -n "$github_user" ]]; then
+      gh_status="You are logged into the GitHub CLI as ${bold}$github_user${normal}"
+    fi   
+  else
+    gh_status="Please authenticate with the GitHub CLI using ${bold}gh auth login${normal}"
+  fi
+else
+  gh_status="Please install the GitHub CLI"
+fi
 
 # check on community repositories
 # workflows
@@ -92,8 +92,13 @@ print_help() {
   echo "  omgmt <command> <subcommand> [flags]"
   echo ""
   echo "${bold}CORE COMMANDS${normal}"
-  echo "  run:             $run"
+  echo "  gh:              $gh_description"
   echo "  update:          $update"
+  echo ""
+  echo "${bold}ANSIBLE COMMANDS${normal}"
+  echo "  new:             $new"
+  echo "  run:             $run"
+  echo "  delete:          $delete"
   echo ""
   echo "  ${italic}Type omgmt followed by a space, then press Tab to explore commands.${normal}"
   echo ""
@@ -101,6 +106,11 @@ print_help() {
   echo "  -h, --help       Show help for command"
   echo "  -v, --version    Show omgmt version"
   echo ""
+
+  # print gh_status
+  if [ ! "$gh_status" = "" ]; then
+    echo "  $gh_status"
+  fi
 
   # print ts_status
   if [ ! "$ts_status" = "" ]; then
