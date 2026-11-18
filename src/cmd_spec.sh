@@ -22,9 +22,15 @@ DELETE_PLAYBOOK_FLAGS=(
 DELETE_PLAYBOOK_FLAGS_MANDATORY="name"
 
 # new
-NEW_DESCRIPTION="Create a new playbook and role"
+NEW_DESCRIPTION="Create a cluster or a playbook and role"
 NEW_FLAGS=(
 )
+# cluster
+NEW_CLUSTER_DESCRIPTION="Creates a cluster from starter templates"
+NEW_CLUSTER_FLAGS=(
+  "name,n,Cluster name,-,-"
+)
+NEW_CLUSTER_FLAGS_MANDATORY="name"
 # playbook
 NEW_PLAYBOOK_DESCRIPTION="Adds a new playbook to ${bold}$PLAYBOOKS_USER_PATH${normal}"
 NEW_PLAYBOOK_FLAGS=(

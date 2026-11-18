@@ -100,6 +100,8 @@ echo ""
 
 if [ "$installation_type" = "admin_local_repo" ]; then
     echo "${bold}[INFO] Installing omgmt software...${normal}"
+    # Store the same starter files used by the cluster repository installer.
+    COPYFILE_DISABLE=1 tar -chf templates/cluster.tar --exclude='.DS_Store' hosts group_vars cmdb
     COPYFILE_DISABLE=1 tar -cf "$TMP_PATH/software.tar" --exclude='.git' --exclude='.DS_Store' \
         --exclude='./hosts' --exclude='./group_vars' --exclude='./cmdb' .
     export MGMT_SOFTWARE_ARCHIVE="$TMP_PATH/software.tar"
@@ -117,10 +119,8 @@ if [ "$installation_type" = "admin_local_repo" ]; then
     fi
     admin_home="$(sudo -H -u "$SUDO_USER" /bin/bash -c 'printf "%s" "$HOME"')"
 
-    # Dereference the CMDB template links so the cluster checkout is self-contained.
-    COPYFILE_DISABLE=1 tar -chf "$TMP_PATH/cluster.tar" --exclude='.DS_Store' hosts group_vars cmdb
     sudo -H -u "$SUDO_USER" /bin/bash -c "$(cat src/admin-repo-install.sh)" \
-        admin-repo-install "$admin_home/my_oreol_mgmt" "$github_user" "$gh_path" < "$TMP_PATH/cluster.tar"
+        admin-repo-install "$admin_home/my_oreol_mgmt" "$github_user" "$gh_path" < templates/cluster.tar
 elif [ "$installation_type" = "odev_plugin" ]; then
     echo "${bold}[INFO] Running installer...${normal}"
     ansible-playbook \
