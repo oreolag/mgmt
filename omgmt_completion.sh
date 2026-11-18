@@ -31,6 +31,11 @@ _omgmt_complete() {
       done
       ;;
     2)
+      [[ -x "$root/cmd/${COMP_WORDS[1]}.sh" ]] || return 0
+      for candidate in -h --help; do
+        [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
+      done
+      [[ $current != -* && -d "$root/cmd/${COMP_WORDS[1]}" ]] || return 0
       for file in "$root/cmd/${COMP_WORDS[1]}"/*.sh; do
         [[ -x "$file" ]] || continue
         candidate=${file##*/}

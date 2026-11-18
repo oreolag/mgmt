@@ -1,13 +1,12 @@
 #!/bin/bash
 
-# example: odev run
+# example: omgmt run
 
 # get script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMMAND="run"
 
-# derive from SCRIPT_DIR
-CLI_NAME="$(basename "$(dirname "$SCRIPT_DIR")")"
+CLI_NAME="omgmt"
 SUBCOMMAND="-"
 OMGMT_PATH="${OMGMT_PATH:-"$(dirname "$SCRIPT_DIR")"}"
 
@@ -16,7 +15,10 @@ KEY="$(printf '%s' "$COMMAND" | tr '[:lower:]' '[:upper:]')"
 command_description="$("$OMGMT_PATH/src/cmd_description_read.sh" "$OMGMT_PATH" "$KEY")"
 
 # read workflow commands
-mapfile -t commands < <("$OMGMT_PATH/src/cmd_subcommands_read.sh" "$OMGMT_PATH" "$KEY")
+commands=()
+while IFS= read -r line; do
+  commands+=("$line")
+done < <(bash "$OMGMT_PATH/src/cmd_subcommands_read.sh" "$OMGMT_PATH" "$KEY")
 
 # print help
 print_range="-"
