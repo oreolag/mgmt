@@ -77,11 +77,6 @@ GH_PULL_DESCRIPTION="Pulls changes from origin into the current branch"
 GH_PULL_FLAGS=(
 )
 GH_PULL_FLAGS_MANDATORY=""
-# pr
-GH_PR_DESCRIPTION="Opens a pull request for the pushed branch on origin"
-GH_PR_FLAGS=(
-)
-GH_PR_FLAGS_MANDATORY=""
 # diff
 GH_DIFF_DESCRIPTION="Shows uncommitted changes in my_oreol_mgmt"
 GH_DIFF_FLAGS=()
