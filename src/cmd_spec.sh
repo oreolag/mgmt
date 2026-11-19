@@ -87,6 +87,6 @@ GH_DIFF_DESCRIPTION="Shows uncommitted changes in my_oreol_mgmt"
 GH_DIFF_FLAGS=()
 GH_DIFF_FLAGS_MANDATORY=""
 # status
-GH_STATUS_DESCRIPTION="Shows how far the current branch is ahead of or behind origin"
+GH_STATUS_DESCRIPTION="Fetches origin and shows Git status"
 GH_STATUS_FLAGS=()
 GH_STATUS_FLAGS_MANDATORY=""

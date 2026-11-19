@@ -6,7 +6,7 @@ bold=$(tput bold 2>/dev/null || true)
 normal=$(tput sgr0 2>/dev/null || true)
 
 print_help() {
-  echo "Show how far the current branch is ahead of or behind origin."
+  echo "Fetch origin and show Git status."
   echo
   echo "${bold}USAGE:${normal}"
   echo "  github_status.sh"
@@ -45,12 +45,6 @@ github_git() {
     -c "credential.https://github.com.helper=!\"$gh_path\" auth git-credential" "$@"
 }
 
-# compare the current branch to the freshly fetched remote branch
-branch="$(git symbolic-ref --quiet --short HEAD)"
-github_git fetch --quiet --no-tags origin "refs/heads/$branch"
-counts="$(git rev-list --left-right --count HEAD...FETCH_HEAD)"
-read -r ahead behind <<< "$counts"
-
-printf '%s vs origin/%s\n' "$branch" "$branch"
-printf '  Ahead:  %s\n' "$ahead"
-printf '  Behind: %s\n' "$behind"
+# refresh remote-tracking branches before showing Git status
+github_git fetch --quiet --no-tags origin
+exec git status
