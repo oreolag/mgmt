@@ -84,6 +84,12 @@ for p in ${PARAMS[@]+"${PARAMS[@]}"}; do
   IFS=',' read -r name _ <<< "$p"
   key="value_$name"
   if declare -p "$key" >/dev/null 2>&1; then
-    printf '%s=%s\n' "$name" "${!key}"
+    value="${!key}"
+    # Keep multiline extra vars in a single key=value record.
+    if [[ "$name" == vars && ( "$value" == *$'\n'* || "$value" == %* ) ]]; then
+      value="${value//%/%25}"
+      value="%${value//$'\n'/%0A}"
+    fi
+    printf '%s=%s\n' "$name" "$value"
   fi
 done
