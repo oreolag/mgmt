@@ -121,7 +121,7 @@ print_version() {
   if [ "$ver" = "main" ]; then
     echo "https://github.com/oreolag/mgmt/tree/main"
   else
-    echo "https://github.com/oreolag/mgmt/releases/tag/${ver}"
+    echo "https://github.com/oreolag/mgmt/releases/tag/v${ver#v}"
   fi
 }
 
