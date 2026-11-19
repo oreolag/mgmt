@@ -53,7 +53,7 @@ _omgmt_complete() {
          -x "$root/cmd/${COMP_WORDS[1]}/${COMP_WORDS[2]}.sh" ]] || return 0
       prev=${COMP_WORDS[COMP_CWORD-1]}
       case "${COMP_WORDS[1]}:${COMP_WORDS[2]}:$prev" in
-        delete:cluster:--name|delete:cluster:-n|run:playbook:--cluster)
+        delete:cluster:--name|delete:cluster:-n|run:playbook:--cluster|run:playbook:-c)
           value_kind=cluster ;;
         delete:playbook:--name|delete:playbook:-n|run:playbook:--name|run:playbook:-n)
           value_kind=playbook ;;
