@@ -61,12 +61,18 @@ if ! gh_path="$(command -v gh)"; then
   echo "Missing tool: gh" >&2
   exit 1
 fi
-if ! github_user="$(GH_PROMPT_DISABLED=1 "$gh_path" api --hostname github.com user 2>/dev/null |
-    python3 -c 'import json, sys; print(json.load(sys.stdin)["login"])' 2>/dev/null)" ||
-    [[ -z "$github_user" ]]; then
+# check on GitHub CLI
+auth_status_script="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/src/gh_auth_status.sh"
+logged_in="$(bash "$auth_status_script" "$gh_path")"
+if [[ "$logged_in" == "0" ]]; then
   echo "Login failed: use gh auth login" >&2
   exit 1
 fi
+
+# get GitHub user
+github_account="$(GH_PROMPT_DISABLED=1 "$gh_path" api --hostname github.com user)" || exit 1
+github_user="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["login"])' <<< "$github_account")" || exit 1
+[[ -n "$github_user" ]] || exit 1
 
 if ! branch="$(git symbolic-ref --quiet --short HEAD)"; then
   echo "Switch to a branch before deleting a playbook" >&2

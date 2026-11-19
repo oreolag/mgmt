@@ -110,17 +110,29 @@ if [ "$installation_type" = "admin_local_repo" ]; then
 
     echo ""
     echo "${bold}[INFO] Setting up my_oreol_mgmt...${normal}"
-    if ! github_user="$(sudo -H -u "$SUDO_USER" /bin/bash -c '
-        GH_PROMPT_DISABLED=1 exec "$1" api --hostname github.com user --jq .login </dev/null 2>/dev/null
-    ' bash "$gh_path" 2>/dev/null)" ||
-        [[ -z "$github_user" ]]; then
+    # Run gh from the invoking user's home, outside the root-owned checkout.
+    logged_in="$(sudo -H -u "$SUDO_USER" /bin/bash -c '
+        cd "$HOME" || exit 1
+        exec /bin/bash -c "$1" gh-auth-status "$2"
+    ' bash "$(cat src/gh_auth_status.sh)" "$gh_path")"
+    if [[ "$logged_in" == "0" ]]; then
         echo "Login failed: use gh auth login" >&2
         exit 1
     fi
+
+    github_account="$(sudo -H -u "$SUDO_USER" /bin/bash -c '
+        cd "$HOME" || exit 1
+        GH_PROMPT_DISABLED=1 exec "$1" api --hostname github.com user </dev/null
+    ' bash "$gh_path")" || exit 1
+    github_user="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["login"])' <<< "$github_account")" || exit 1
+    [[ -n "$github_user" ]] || exit 1
     admin_home="$(sudo -H -u "$SUDO_USER" /bin/bash -c 'printf "%s" "$HOME"')"
 
-    sudo -H -u "$SUDO_USER" /bin/bash -c "$(cat src/admin-repo-install.sh)" \
-        admin-repo-install "$admin_home/my_oreol_mgmt" "$github_user" "$gh_path" </dev/null
+    sudo -H -u "$SUDO_USER" /bin/bash -c '
+        cd "$HOME" || exit 1
+        exec /bin/bash -c "$1" admin-repo-install "${@:2}"
+    ' bash "$(cat src/admin-repo-install.sh)" \
+        "$admin_home/my_oreol_mgmt" "$github_user" "$gh_path" </dev/null
 elif [ "$installation_type" = "odev_plugin" ]; then
     echo "${bold}[INFO] Running installer...${normal}"
     ansible-playbook \
