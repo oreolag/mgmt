@@ -118,14 +118,8 @@
               - -H
               - -u
               - "{{ admin_repo_user }}"
-              - "{{ lookup('ansible.builtin.env', 'MGMT_ANSIBLE_GALAXY') }}"
-              - collection
-              - install
-              - -r
-              - requirements.yml
-              - -p
-              - ./collections
-              - --force
+              - "MGMT_ANSIBLE_GALAXY={{ lookup('ansible.builtin.env', 'MGMT_ANSIBLE_GALAXY') }}"
+              - "{{ admin_software_path }}/collections-update.sh"
             chdir: "{{ admin_software_path }}"
           changed_when: true
 
@@ -228,7 +222,7 @@
 
         - name: Install Oreol Ansible Collection
           ansible.builtin.command:
-            cmd: ansible-galaxy collection install -r requirements.yml -p ./collections --force
+            cmd: ./collections-update.sh
             chdir: "{{ mgmt_remote_path }}/omgmt"
           changed_when: true
 

@@ -53,6 +53,14 @@ for destination in "${destinations[@]}"; do
   fi
 done
 
+collection_playbooks="$software/collections/ansible_collections/oreol/mgmt/playbooks"
+for extension in yml yaml; do
+  if [[ -e "$collection_playbooks/$name.$extension" || -L "$collection_playbooks/$name.$extension" ]]; then
+    printf 'Playbook already exists (collection): %s\n' "$name" >&2
+    exit 1
+  fi
+done
+
 # Check GitHub CLI and get the signed-in user.
 if ! gh_path="$(command -v gh)"; then
   echo "Missing tool: gh" >&2

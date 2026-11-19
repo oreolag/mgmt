@@ -39,7 +39,7 @@ if [[ -z "$name" ]]; then
   echo 'Missing option: --name <name>' >&2
   exit 1
 fi
-if [[ ! "$name" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ ]]; then
+if [[ ! "${name#oreol.mgmt.}" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ ]]; then
   printf 'Invalid playbook name: %s\n' "$name" >&2
   exit 1
 fi
@@ -77,9 +77,15 @@ playbook="$workspace/playbooks/$name.yml"
 if [[ ! -f "$playbook" ]]; then
   playbook="$workspace/playbooks/$name.yaml"
 fi
-if [[ ! -f "$playbook" ]]; then
-  printf 'Playbook does not exist: %s\n' "$name" >&2
-  exit 1
+if [[ "$name" == oreol.mgmt.* || ! -f "$playbook" ]]; then
+  collection_name="${name#oreol.mgmt.}"
+  collection_name="${collection_name//-/_}"
+  collection_playbook="$software/collections/ansible_collections/oreol/mgmt/playbooks/$collection_name"
+  if [[ ! -f "$collection_playbook.yml" && ! -f "$collection_playbook.yaml" ]]; then
+    printf 'Playbook does not exist: %s\n' "$name" >&2
+    exit 1
+  fi
+  playbook="oreol.mgmt.$collection_name"
 fi
 
 # run the playbook on the selected hosts
