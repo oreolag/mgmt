@@ -28,6 +28,21 @@ done <<< "$flag_specs"
 # parse flags
 parsed_flags="$("$software/src/cmd_parse.sh" --params ${flags[@]+"${flags[@]}"} -- "$@")" || exit 1
 
+# Require an explicit choice when the workspace has multiple clusters.
+if [[ -d "$workspace" ]]; then
+  workspace="$(cd "$workspace" && pwd)"
+fi
+clusters=()
+for directory in "$workspace"/clusters/*; do
+  [[ -d "$directory" ]] || continue
+  candidate="${directory##*/}"
+  [[ "$candidate" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ ]] || continue
+  clusters+=("$candidate")
+done
+if [[ -n "${clusters[1]:-}" ]]; then
+  mandatory_flags="${mandatory_flags:+$mandatory_flags,}cluster"
+fi
+
 # validate supplied values before prompting, then validate each answer
 name="-"
 cluster="-"
@@ -51,26 +66,13 @@ for field in "" ${mandatory_flags//,/ }; do
   fi
 done
 
-# select the cluster inventory
-if [[ -d "$workspace" ]]; then
-  workspace="$(cd "$workspace" && pwd)"
-fi
+# Select the sole cluster when none was supplied.
 if [[ "$cluster" == "-" ]]; then
-  clusters=()
-  for directory in "$workspace"/clusters/*; do
-    [[ -d "$directory" ]] || continue
-    candidate="${directory##*/}"
-    [[ "$candidate" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ ]] || continue
-    clusters+=("$candidate")
-  done
   if [[ -z "${clusters[0]:-}" ]]; then
     echo 'Missing cluster: use omgmt new cluster --name <name>' >&2
     exit 1
   fi
-  case "${#clusters[@]}" in
-    1) cluster="${clusters[0]}" ;;
-    *) echo 'Missing option: --cluster <name>' >&2; exit 1 ;;
-  esac
+  cluster="${clusters[0]}"
 fi
 if [[ ! "$cluster" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ || ! -d "$workspace/clusters/$cluster" ]]; then
   printf 'Cluster not found: %s\n' "$cluster" >&2
