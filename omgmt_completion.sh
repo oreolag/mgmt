@@ -9,7 +9,7 @@ if [[ -n ${ZSH_VERSION:-} ]] && ! typeset -f complete >/dev/null; then
 fi
 
 _omgmt_complete() {
-  local current command_path root file candidate key flag_specs name short prev workspace
+  local current command_path root file candidate key flag_specs name short prev workspace value_kind
   COMPREPLY=()
   current=${COMP_WORDS[COMP_CWORD]}
   command_path=$(command -v -- "${COMP_WORDS[0]}") || return 0
@@ -47,9 +47,15 @@ _omgmt_complete() {
       [[ -f "$root/cmd/${COMP_WORDS[1]}/${COMP_WORDS[2]}.sh" &&
          -x "$root/cmd/${COMP_WORDS[1]}/${COMP_WORDS[2]}.sh" ]] || return 0
       prev=${COMP_WORDS[COMP_CWORD-1]}
-      if [[ "${COMP_WORDS[1]}" == delete && ( "$prev" == --name || "$prev" == -n ) ]]; then
+      case "${COMP_WORDS[1]}:${COMP_WORDS[2]}:$prev" in
+        delete:cluster:--name|delete:cluster:-n|run:playbook:--cluster)
+          value_kind=cluster ;;
+        delete:playbook:--name|delete:playbook:-n|run:playbook:--name|run:playbook:-n)
+          value_kind=playbook ;;
+      esac
+      if [[ -n "${value_kind:-}" ]]; then
         workspace="${OMGMT_CLUSTER_PATH:-$HOME/my_oreol_mgmt}"
-        case "${COMP_WORDS[2]}" in
+        case "$value_kind" in
           cluster)
             while IFS= read -r file; do
               candidate=${file##*/}
@@ -59,14 +65,21 @@ _omgmt_complete() {
             ;;
           playbook)
             while IFS= read -r candidate; do
-              [[ $candidate != cli_install && $candidate =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ &&
-                 $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
+              [[ $candidate =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ && $candidate == "$current"* ]] || continue
+              if [[ "${COMP_WORDS[1]}" == delete ]]; then
+                [[ $candidate != cli_install ]] || continue
+              else
+                [[ -f "$workspace/playbooks/$candidate.yml" || -f "$workspace/playbooks/$candidate.yaml" ]] || continue
+              fi
+              COMPREPLY+=("$candidate")
             done < <(
               {
                 find "$workspace/playbooks" -mindepth 1 -maxdepth 1 \( -type f -o -type l \) \
                   2>/dev/null | sed -nE 's|.*/([^/]+)\.ya?ml$|\1|p'
-                find "$workspace/roles" -mindepth 1 -maxdepth 1 -type d 2>/dev/null |
-                  sed 's|.*/||'
+                if [[ "${COMP_WORDS[1]}" == delete ]]; then
+                  find "$workspace/roles" -mindepth 1 -maxdepth 1 -type d 2>/dev/null |
+                    sed 's|.*/||'
+                fi
               } | sort -u
             )
             ;;
