@@ -58,7 +58,7 @@ print_help() {
   echo "  gh:              $gh_description"
   echo "  update:          $update"
   echo ""
-  echo "${bold}MANAGEMENT COMMANDS${normal}"
+  echo "${bold}MGMT COMMANDS${normal}"
   echo "  new:             $new"
   echo "  run:             $run"
   echo "  delete:          $delete"
