@@ -110,11 +110,12 @@ if [ "$installation_type" = "admin_local_repo" ]; then
 
     echo ""
     echo "${bold}[INFO] Setting up my_oreol_mgmt...${normal}"
-    # Run gh from the invoking user's home, outside the root-owned checkout.
+    # Leave the private temporary directory before starting a shell as the user.
+    cd /
     logged_in="$(sudo -H -u "$SUDO_USER" /bin/bash -c '
         cd "$HOME" || exit 1
         exec /bin/bash -c "$1" gh-auth-status "$2"
-    ' bash "$(cat src/gh_auth_status.sh)" "$gh_path")"
+    ' bash "$(cat "$TMP_PATH/mgmt/src/gh_auth_status.sh")" "$gh_path")"
     if [[ "$logged_in" == "0" ]]; then
         echo "Login failed: use gh auth login" >&2
         exit 1
@@ -131,8 +132,13 @@ if [ "$installation_type" = "admin_local_repo" ]; then
     sudo -H -u "$SUDO_USER" /bin/bash -c '
         cd "$HOME" || exit 1
         exec /bin/bash -c "$1" admin-repo-install "${@:2}"
-    ' bash "$(cat src/admin-repo-install.sh)" \
+    ' bash "$(cat "$TMP_PATH/mgmt/src/admin-repo-install.sh")" \
         "$admin_home/my_oreol_mgmt" "$github_user" "$gh_path" </dev/null
+    if [[ ! -d "$admin_home/my_oreol_mgmt/.git" && ! -f "$admin_home/my_oreol_mgmt/.git" ]]; then
+        printf 'Missing cluster repository: %s\n' "$admin_home/my_oreol_mgmt" >&2
+        exit 1
+    fi
+    printf 'Workspace: %s\n' "$admin_home/my_oreol_mgmt"
 elif [ "$installation_type" = "odev_plugin" ]; then
     echo "${bold}[INFO] Running installer...${normal}"
     ansible-playbook \
