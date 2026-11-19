@@ -22,22 +22,13 @@
 For Oreol-managed clusters, Oreol provides a customized `mgmt` repository for co-managing your infrastructure under your management agreement. For independently managed clusters and remote servers, follow the installation instructions below to get started.
 
 ## Installation
-Run the following command on your host (see [Supported Platforms](#supported-platforms)):
+Run the following command from the directory where you want to keep `my_oreol_mgmt` (see [Supported Platforms](#supported-platforms)):
 
 ```bash
 curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo bash
 ```
 
-### Publishing to GitHub
-
-After installation, it is recommended to publish your administration repository to a private GitHub repository to track changes to your inventory, variables, and CMDB:
-
-```bash
-cd my_oreol_mgmt
-gh repo create YOUR_USERNAME/my_oreol_mgmt --private --source=. --remote=origin --push
-```
-
-Replace `YOUR_USERNAME` with your GitHub username. If needed, run `gh auth login` first.
+The installer checks out your GitHub repository in `./my_oreol_mgmt` and saves its path so you can run `omgmt` from any directory. If needed, run `gh auth login` first.
 
 ### Updating Oreol Ansible Collection
 

@@ -54,7 +54,11 @@ _omgmt_complete() {
           value_kind=playbook ;;
       esac
       if [[ -n "${value_kind:-}" ]]; then
-        workspace="${OMGMT_CLUSTER_PATH:-$HOME/my_oreol_mgmt}"
+        workspace="${OMGMT_CLUSTER_PATH:-}"
+        if [[ -z "$workspace" && -r "$HOME/.config/omgmt/workspace" ]]; then
+          workspace="$(cat "$HOME/.config/omgmt/workspace")"
+        fi
+        workspace="${workspace:-$HOME/my_oreol_mgmt}"
         case "$value_kind" in
           cluster)
             while IFS= read -r file; do

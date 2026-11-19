@@ -6,6 +6,9 @@ if [[ -L "$launcher" ]]; then
   launcher="$(readlink "$launcher")"
 fi
 export OMGMT_PATH="$(cd "$(dirname "$launcher")" && pwd)"
+if [[ -z "${OMGMT_CLUSTER_PATH:-}" && -r "$HOME/.config/omgmt/workspace" ]]; then
+  OMGMT_CLUSTER_PATH="$(cat "$HOME/.config/omgmt/workspace")"
+fi
 export OMGMT_CLUSTER_PATH="${OMGMT_CLUSTER_PATH:-$HOME/my_oreol_mgmt}"
 
 # format

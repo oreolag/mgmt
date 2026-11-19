@@ -4,6 +4,7 @@ set -euo pipefail
 
 # inputs
 installation_type="${1:-admin_local_repo}"
+launch_directory="$(pwd -P)"
 
 # format
 bold=$(tput bold 2>/dev/null || true)
@@ -127,18 +128,25 @@ if [ "$installation_type" = "admin_local_repo" ]; then
     ' bash "$gh_path")" || exit 1
     github_user="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["login"])' <<< "$github_account")" || exit 1
     [[ -n "$github_user" ]] || exit 1
-    admin_home="$(sudo -H -u "$SUDO_USER" /bin/bash -c 'printf "%s" "$HOME"')"
+    workspace="${launch_directory%/}/my_oreol_mgmt"
 
     sudo -H -u "$SUDO_USER" /bin/bash -c '
         cd "$HOME" || exit 1
-        exec /bin/bash -c "$1" admin-repo-install "${@:2}"
+        set -e
+        /bin/bash -c "$1" admin-repo-install "${@:2}"
+        if [[ ! -d "$2/.git" && ! -f "$2/.git" ]]; then
+            printf "Missing cluster repository: %s\n" "$2" >&2
+            exit 1
+        fi
+        config_dir="$HOME/.config/omgmt"
+        mkdir -p "$config_dir"
+        config_tmp="$(mktemp "$config_dir/workspace.XXXXXXXX")"
+        trap '\''rm -f "$config_tmp"'\'' EXIT
+        printf "%s\n" "$2" > "$config_tmp"
+        mv -f "$config_tmp" "$config_dir/workspace"
     ' bash "$(cat "$TMP_PATH/mgmt/src/admin-repo-install.sh")" \
-        "$admin_home/my_oreol_mgmt" "$github_user" "$gh_path" </dev/null
-    if [[ ! -d "$admin_home/my_oreol_mgmt/.git" && ! -f "$admin_home/my_oreol_mgmt/.git" ]]; then
-        printf 'Missing cluster repository: %s\n' "$admin_home/my_oreol_mgmt" >&2
-        exit 1
-    fi
-    printf 'Workspace: %s\n' "$admin_home/my_oreol_mgmt"
+        "$workspace" "$github_user" "$gh_path" </dev/null
+    printf 'Workspace: %s\n' "$workspace"
 elif [ "$installation_type" = "odev_plugin" ]; then
     echo "${bold}[INFO] Running installer...${normal}"
     ansible-playbook \
