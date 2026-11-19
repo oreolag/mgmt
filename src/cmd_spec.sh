@@ -70,11 +70,7 @@ GH_FLAGS=(
 )
 # push
 GH_PUSH_DESCRIPTION="Pushes the current branch to origin"
-GH_PUSH_FLAGS=(
-  "cluster,c,Cluster to commit,-,-"
-  "playbook,p,Playbook and matching role to commit,-,-"
-  "comment,,Commit subject,-,-"
-)
+GH_PUSH_FLAGS=()
 GH_PUSH_FLAGS_MANDATORY=""
 # pull
 GH_PULL_DESCRIPTION="Pulls changes from origin into the current branch"
@@ -88,8 +84,5 @@ GH_PR_FLAGS=(
 GH_PR_FLAGS_MANDATORY=""
 # diff
 GH_DIFF_DESCRIPTION="Shows uncommitted changes in my_oreol_mgmt"
-GH_DIFF_FLAGS=(
-  "cluster,c,Cluster name,-,-"
-  "playbook,p,Playbook and matching role,-,-"
-)
+GH_DIFF_FLAGS=()
 GH_DIFF_FLAGS_MANDATORY=""

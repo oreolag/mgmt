@@ -108,9 +108,16 @@ elif [ ! "$COMMAND" = "" ] && [ "$SUBCOMMAND" = "-" ]; then
 elif [ ! "$COMMAND" = "" ] && [ ! "$SUBCOMMAND" = "" ]; then
   # cmd/new/nccl.sh
   #usage="${CLI_NAME} ${COMMAND} ${SUBCOMMAND}"
-  echo "  $CLI_NAME $COMMAND $SUBCOMMAND [flags]"
-  echo ""
-  echo "${bold}FLAGS:${normal}"
+  if [[ "$COMMAND" == "gh" && -z "${PARAMS[0]:-}" ]]; then
+    echo "  $CLI_NAME $COMMAND $SUBCOMMAND"
+    echo ""
+    echo "${bold}FLAGS:${normal}"
+    echo "  This command has no flags."
+  else
+    echo "  $CLI_NAME $COMMAND $SUBCOMMAND [flags]"
+    echo ""
+    echo "${bold}FLAGS:${normal}"
+  fi
 fi
 
 # print commands or flags
