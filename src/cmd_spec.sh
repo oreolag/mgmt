@@ -59,7 +59,7 @@ RUN_PLAYBOOK_FLAGS=(
 RUN_PLAYBOOK_FLAGS_MANDATORY="name"
 
 # update
-UPDATE_DESCRIPTION="Update omgmt to the latest release/main version"
+UPDATE_DESCRIPTION="Update omgmt to the latest release or main. Both modes refresh the Ansible collection using requirements.yml"
 UPDATE_FLAGS=(
   "main,m,Use main branch instead of release,-,-"
 )

@@ -1,183 +1,97 @@
 #!/bin/bash
 set -euo pipefail
 
-# example: odev update
+# example: omgmt update --main
 
-# get script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-COMMAND="-"
+OMGMT_PATH="${OMGMT_PATH:-$(dirname "$SCRIPT_DIR")}"
+repo_url="https://github.com/oreolag/mgmt.git"
+software_dir="$HOME/.local/share/omgmt/software"
 
-# derive from SCRIPT_DIR
-CLI_NAME="$(basename "$(dirname "$SCRIPT_DIR")")"
-SUBCOMMAND="update"
-ODEV_PATH="${ODEV_PATH:-"$(dirname "$SCRIPT_DIR")"}"
+ref=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -m|--main) ref=main ;;
+    -h|--help) exec "$OMGMT_PATH/omgmt.sh" update --help ;;
+    *) printf 'Unknown flag: %s\n' "$1" >&2; exit 1 ;;
+  esac
+  shift
+done
 
-# get hostname
-url="${HOSTNAME}"
-hostname="${url%%.*}"
-
-# format
-bold=$(tput bold)
-italic=$(tput sitm 2>/dev/null || true)
-normal=$(tput sgr0)
-
-# constants
-COLOR_PASSED=$($ODEV_PATH/src/constant_get.sh $ODEV_PATH COLOR_PASSED)
-#ODEV_REPO="$(eval echo "$("$ODEV_PATH/src/read_yml.py" --db "$ODEV_PATH/vars.yml" github odev_repo)")"
-ODEV_REPO=$($ODEV_PATH/src/constant_get.sh $ODEV_PATH ODEV_REPO)
-TMP_PATH="$(eval echo "$("$ODEV_PATH/src/read_yml.py" --db "$ODEV_PATH/vars.yml" paths tmp)")"
-
-# check on users
-is_odev_admins=$($ODEV_PATH/src/is_member.sh $USER odev-admins)
-if [ "$is_odev_admins" = "0" ]; then
-  echo "Permission denied: $USER"
+if [[ ! "$OMGMT_PATH" -ef "$software_dir" ]]; then
+  echo "Run update from the installed omgmt command." >&2
   exit 1
 fi
 
-# check on tools
-installed="$("$ODEV_PATH/src/required_tools_print.sh" "$ODEV_PATH" "gh")"
-if [[ "$installed" == "0" ]]; then
-  echo "Missing tool: gh"
-  exit 1
-fi
-
-# check on GitHub CLI
-logged_in="$("$ODEV_PATH/src/gh_auth_status.sh")"
-if [[ "$logged_in" == "0" ]]; then
-  echo "Login failed: gh"
-  exit 1
-fi
-
-# set KEY
-KEY="$(printf '%s' "$SUBCOMMAND" | tr '[:lower:]' '[:upper:]')"
-
-# read command description, command flags
-command_description="$("$ODEV_PATH/src/cmd_description_read.sh" "$ODEV_PATH" "$KEY")"
-mapfile -t flags < <("$ODEV_PATH/src/cmd_flags_read.sh" "$ODEV_PATH" "$KEY")
-
-# (maybe) print help
-print_range="0"
-print_default="0"
-print_both="0"
-"$ODEV_PATH/src/cmd_help_print.sh" --maybe \
-  "$CLI_NAME" "$COMMAND" "$SUBCOMMAND" "$command_description" \
-  "$print_range" "$print_default" "$print_both" \
-  "${flags[@]}" -- "$@" && exit 0 || true
-
-# parse and assign flags
-flag="${1:-}"
-
-# check on flags
-if [[ -n "$flag" && "$flag" != "--main" && "$flag" != "-m" ]]; then
-    echo "Unknown flag: $flag"
+if [[ -z "$ref" ]]; then
+  if ! gh_path="$(command -v gh)"; then
+    echo "Missing tool: gh" >&2
     exit 1
+  fi
+  logged_in="$(bash "$OMGMT_PATH/src/gh_auth_status.sh" "$gh_path")"
+  if [[ "$logged_in" == "0" ]]; then
+    echo "Login failed: use gh auth login" >&2
+    exit 1
+  fi
+  ref="$("$gh_path" release view --repo oreolag/mgmt --json tagName --jq .tagName)"
+  if [[ -z "$ref" ]]; then
+    echo "Release not found: oreolag/mgmt" >&2
+    exit 1
+  fi
 fi
 
-# set command flags
-# ...
+# Stage the update next to the installed software.
+install_dir="$(dirname "$software_dir")"
+staging="$(mktemp -d "$install_dir/.update.XXXXXXXX")"
+previous="$staging/previous"
+cleanup() {
+  if [[ -d "$previous" && ! -e "$software_dir" ]]; then
+    mv "$previous" "$software_dir" || return
+  fi
+  rm -rf -- "$staging"
+}
+trap cleanup EXIT
+trap 'exit 1' HUP INT TERM
 
-# derived
-CHECKOUT_PATH="$TMP_PATH/odev"
+checkout="$staging/checkout"
+snapshot="$staging/software"
+git clone --branch "$ref" --recursive "$repo_url" "$checkout"
 
-# remove first
-sudo rm -rf -- "$CHECKOUT_PATH"
-#sudo $ODEV_PATH/src/rm.sh "$ODEV_PATH" "$CHECKOUT_PATH"
-
-# repository checkout
-msg=""
-ver=""
-if [[ "$flag" == "--main" ]] || [[ "$flag" == "-m" ]]; then
-  git clone --branch main "$ODEV_REPO" "$CHECKOUT_PATH"
-  release_date="$(git -C "$CHECKOUT_PATH" log -1 --format=%cs)"
-  msg="${COLOR_PASSED}✓${normal} odev updated: main"
-  ver="main"
+# The release metadata commit on main is newer than the tagged commit.
+# Use the published release date for a release and the commit date for main.
+if [[ "$ref" == main ]]; then
+  version=main
+  release_date="$(git -C "$checkout" log -1 --format=%cs)"
 else
-  tag="$(gh release view --repo oreolag/cli --json tagName -q .tagName)"
-
-  if [[ -z "$tag" ]]; then
-    tag="$(git ls-remote --tags "$ODEV_REPO" | awk -F/ '{print $3}' | sort -V | tail -n1)"
-  fi
-
-  git clone --branch "$tag" "$ODEV_REPO" "$CHECKOUT_PATH"
-  release_date="$(git -C "$CHECKOUT_PATH" log -1 --format=%cs)"
-  msg="${COLOR_PASSED}✓${normal} odev updated: $tag"
-  ver="$tag"
+  version="${ref#v}"
+  published_at="$("$gh_path" release view "$ref" --repo oreolag/mgmt --json publishedAt --jq .publishedAt)"
+  release_date="${published_at%%T*}"
 fi
+printf '%s\n' "$version" > "$checkout/VERSION"
+printf '%s\n' "$release_date" > "$checkout/RELEASE_DATE"
 
-# get submodules
-git -C "$CHECKOUT_PATH" submodule update --init --recursive
+# Build the same software and cluster template archives as install.sh.
+COPYFILE_DISABLE=1 tar -chf "$checkout/templates/cluster.tar" -C "$checkout" \
+  --exclude='.DS_Store' hosts group_vars cmdb
+mkdir "$snapshot"
+COPYFILE_DISABLE=1 tar -cf - -C "$checkout" --exclude='.git' --exclude='.DS_Store' \
+  --exclude='./hosts' --exclude='./group_vars' --exclude='./cmdb' . |
+  tar -xf - -C "$snapshot"
 
-# top level files
-for f in LICENSE README.md RELEASE_DATE VERSION cli-removebg.png vars.yml odev_completion.sh submodules_update.sh; do
-  if [[ -f "$CHECKOUT_PATH/$f" ]]; then
-    sudo cp -f -- "$CHECKOUT_PATH/$f" "$ODEV_PATH/$f"
-  fi
-done
+# Refresh the collection in the staged snapshot before replacing the installation.
+"$snapshot/collections-update.sh"
+cp "$snapshot/ansible-play-completion.bash" "$staging/ansible-play-completion.bash"
 
-# compile and copy odev
-sudo chmod +x "$CHECKOUT_PATH/odev.sh"
-sudo mv "$CHECKOUT_PATH/odev.sh" "$CHECKOUT_PATH/odev"
-sudo cp -f -- "$CHECKOUT_PATH/odev" "$ODEV_PATH/odev"
-
-# cmd (keep user symlinks)
-sudo mv "$ODEV_PATH/cmd" "$ODEV_PATH/cmd_tmp"
-sudo cp -a "$CHECKOUT_PATH/cmd" "$ODEV_PATH/cmd"
-folders=(new build program run validate delete)
-for dir in "${folders[@]}"; do
-  src="$ODEV_PATH/cmd_tmp/$dir"
-  dst="$ODEV_PATH/cmd/$dir"
-  [[ -d "$src" ]] || continue
-  find "$src" -maxdepth 1 -type l | while read -r link; do
-    target="$(readlink "$link")"
-    # user symlinks do NOT start with ../../
-    if [[ "$target" != ../../* ]]; then
-      name="$(basename "$link")"
-      if [[ ! -e "$dst/$name" ]]; then
-        sudo cp -a "$link" "$dst/$name"
-      fi
-    fi
-  done
-done
-sudo rm -rf -- "$ODEV_PATH/cmd_tmp"
-
-# src
-sudo rm -rf -- "$ODEV_PATH/src"
-sudo cp -a "$CHECKOUT_PATH/src" "$ODEV_PATH/src"
-
-# submodules
-sudo rm -rf -- "$ODEV_PATH/submodules"
-sudo cp -a "$CHECKOUT_PATH/submodules" "$ODEV_PATH/submodules"
-
-# templates
-sudo rm -rf -- "$ODEV_PATH/templates"
-sudo cp -a "$CHECKOUT_PATH/templates" "$ODEV_PATH/templates"
-
-# Install completion (system-wide)
-sudo install -o root -g root -m 0644 \
-  "$ODEV_PATH/odev_completion.sh" \
-  /usr/share/bash-completion/completions/odev
-
-# Add extended capabilities
-sudo install -o root -g root -m 0440 \
-  "$ODEV_PATH/src/odev-users" \
-  /etc/sudoers.d/odev-users
-
-sudo install -o root -g root -m 0440 \
-  "$ODEV_PATH/src/odev-developers" \
-  /etc/sudoers.d/odev-developers
-
-sudo install -o root -g root -m 0440 \
-  "$ODEV_PATH/src/odev-admins" \
-  /etc/sudoers.d/odev-admins
-
-# consolidate ownership
-sudo "$ODEV_PATH/src/chown.sh" root root "$ODEV_PATH"
-
-# update VERSION and RELEASE_DATE
-echo "$ver" | sudo tee /opt/odev/VERSION >/dev/null
-echo "$release_date" | sudo tee /opt/odev/RELEASE_DATE >/dev/null
-
-# print 
-echo -e "$msg"
+# Serialize the directory swap and restore the previous snapshot if it fails.
+lock="$install_dir/.update-lock"
+if ! mkdir "$lock"; then
+  echo "Another omgmt update is replacing the installation." >&2
+  exit 1
+fi
+trap 'cleanup; rmdir "$lock"' EXIT
+mv "$software_dir" "$previous"
+mv "$snapshot" "$software_dir"
+mv -f "$staging/ansible-play-completion.bash" "$install_dir/ansible-play-completion.bash"
+printf '✓ omgmt updated: %s\n' "$ref"
 
 # author: https://github.com/jmoya82
