@@ -14,6 +14,12 @@ normal=$(tput sgr0 2>/dev/null || true)
 DELETE_DESCRIPTION="Deletes an artifact of your choice"
 DELETE_FLAGS=(
 )
+# cluster
+DELETE_CLUSTER_DESCRIPTION="Deletes an existing cluster"
+DELETE_CLUSTER_FLAGS=(
+  "name,n,Cluster name,-,-"
+)
+DELETE_CLUSTER_FLAGS_MANDATORY="name"
 # playbook
 DELETE_PLAYBOOK_DESCRIPTION="Deletes an existing user playbook"
 DELETE_PLAYBOOK_FLAGS=(
