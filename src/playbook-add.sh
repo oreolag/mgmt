@@ -10,7 +10,8 @@ if [[ $# -ne 1 || ! $1 =~ ^[a-z][a-z0-9_]*$ || $1 == cli_install ]]; then
     exit 1
 fi
 
-cluster_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+software="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cluster_dir="${OMGMT_CLUSTER_PATH:-$software}"
 name=$1
 playbook="$cluster_dir/playbooks/$name.yml"
 role="$cluster_dir/roles/$name"
@@ -26,7 +27,7 @@ for destination in "$playbook" "$cluster_dir/playbooks/$name.yaml" "$role"; do
     fi
 done
 
-collection_playbooks="$cluster_dir/collections/ansible_collections/oreol/mgmt/playbooks"
+collection_playbooks="$software/collections/ansible_collections/oreol/mgmt/playbooks"
 for extension in yml yaml; do
     if [[ -e "$collection_playbooks/$name.$extension" || -L "$collection_playbooks/$name.$extension" ]]; then
         echo "Playbook already exists (collection): $name" >&2
@@ -35,13 +36,13 @@ for extension in yml yaml; do
 done
 
 for template in MY_PLAYBOOK.yml MY_PLAYBOOK_role/README.md MY_PLAYBOOK_role/tasks/main.yml; do
-    if [[ ! -r "$cluster_dir/templates/$template" ]]; then
+    if [[ ! -r "$software/templates/$template" ]]; then
         echo "Template does not exist: $template" >&2
         exit 1
     fi
 done
 
 mkdir -p "$cluster_dir/playbooks" "$role/tasks"
-sed "s/MY_PLAYBOOK/$name/g" "$cluster_dir/templates/MY_PLAYBOOK.yml" > "$playbook"
-sed "s/MY_PLAYBOOK/$name/g" "$cluster_dir/templates/MY_PLAYBOOK_role/README.md" > "$role/README.md"
-sed "s/MY_PLAYBOOK/$name/g" "$cluster_dir/templates/MY_PLAYBOOK_role/tasks/main.yml" > "$role/tasks/main.yml"
+sed "s/MY_PLAYBOOK/$name/g" "$software/templates/MY_PLAYBOOK.yml" > "$playbook"
+sed "s/MY_PLAYBOOK/$name/g" "$software/templates/MY_PLAYBOOK_role/README.md" > "$role/README.md"
+sed "s/MY_PLAYBOOK/$name/g" "$software/templates/MY_PLAYBOOK_role/tasks/main.yml" > "$role/tasks/main.yml"
