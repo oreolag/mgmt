@@ -18,7 +18,7 @@ normal=$(tput sgr0 2>/dev/null || true)
 
 print_server_status() {
   local github_user ts_user
-  printf '\n%OMGMT STATUS%s\n' "$bold" "$normal"
+  printf '\n%sOMGMT STATUS%s\n' "$bold" "$normal"
 
   if ! command -v gh >/dev/null 2>&1; then
     echo "  Please install the GitHub CLI"
