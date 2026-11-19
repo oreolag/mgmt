@@ -1,140 +1,128 @@
 #!/bin/bash
+set -euo pipefail
 
-# example: odev delete playbook --name my_playbook
+# example: omgmt delete playbook --name test
 
-# get script location
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SUBCOMMAND="$(basename "${BASH_SOURCE[0]}" .sh)"
-
-# derive from SCRIPT_DIR
-CLI_NAME="$(basename "$(dirname "$(dirname "$SCRIPT_DIR")")")"
-COMMAND="$(basename "$SCRIPT_DIR")"
-ODEV_PATH="${ODEV_PATH:-"$(dirname "$(dirname "$SCRIPT_DIR")")"}"
-
-# get hostname
-url="${HOSTNAME}"
-hostname="${url%%.*}"
-
-# format
-bold=$(tput bold)
-italic=$(tput sitm 2>/dev/null || true)
-normal=$(tput sgr0)
-
-# constants
-PLAYBOOKS_USER_PATH="$(python3 "$ODEV_PATH/src/odev_path.py" playbooks)" || exit 1
-
-PLAYBOOKS_PATH="$ODEV_PATH/submodules/playbooks"
-
-# check on users
-is_odev_developer=$($ODEV_PATH/src/is_member.sh $USER odev-developers)
-if [ "$is_odev_developer" = "0" ]; then
-  echo "Permission denied: $USER"
-  exit 1
-fi
-
-# check on tools
-installed="$("$ODEV_PATH/src/required_tools_print.sh" "$ODEV_PATH" "gh")"
-if [[ "$installed" == "0" ]]; then
-  echo "Missing tool: gh"
-  exit 1
-fi
-
-# set KEY
-KEY="$(printf '%s_%s' "$COMMAND" "$SUBCOMMAND" | tr '[:lower:]' '[:upper:]')"
-
-# read command description, command flags, mandatory flags
-command_description="$("$ODEV_PATH/src/cmd_description_read.sh" "$ODEV_PATH" "$KEY")"
-mapfile -t flags < <("$ODEV_PATH/src/cmd_flags_read.sh" "$ODEV_PATH" "$KEY")
-mandatory_flags="$("$ODEV_PATH/src/cmd_mandatory_flags_read.sh" "$ODEV_PATH" "$KEY")"
-
-# (maybe) print help
-print_range="0"
-print_default="0"
-print_both="0"
-"$ODEV_PATH/src/cmd_help_print.sh" --maybe \
-  "$CLI_NAME" "$COMMAND" "$SUBCOMMAND" "$command_description" \
-  "$print_range" "$print_default" "$print_both" \
-  "${flags[@]}" -- "$@" && exit 0 || true
+# management repository
+workspace="${OMGMT_CLUSTER_PATH:-$HOME/my_oreol_mgmt}"
 
 # parse flags
-parsed_flags="$("$ODEV_PATH/src/cmd_parse.sh" --params "${flags[@]}" -- "$@")" || exit 1
-
-# check supplied values first, then check each answer before the next question
-for field in "" ${mandatory_flags//,/ }; do
-  if [[ -n "$field" && "${V[$field]:--}" != "-" ]]; then
-    continue
-  fi
-  # run interactive prompt
-  parsed_flags="$("$ODEV_PATH/src/cmd_prompt.sh" --required "$mandatory_flags" --field "$field" --params "${flags[@]}" -- "$parsed_flags")" || exit 1
-
-  # read flags
-  if [[ -n "$parsed_flags" ]]; then
-    declare -A V
-    while IFS='=' read -r k v; do
-      V["$k"]="$v"
-    done <<< "$parsed_flags"
-  fi
-
-  # assign flags
-  name=${V[name]:--}
-
-  if [[ "$name" != "-" ]]; then
-    # check on name
-    if [[ ! "$name" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ ]]; then
-      echo "Invalid playbook name: $name"
+name=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --name|-n)
+      if [[ -z "${2:-}" || "$2" == -* ]]; then
+        printf 'Missing value for %s\n' "$1" >&2
+        exit 1
+      fi
+      name="$2"
+      shift 2
+      ;;
+    *)
+      printf 'Unknown flag: %s\n' "$1" >&2
       exit 1
-    fi
+      ;;
+  esac
+done
 
-    # check if exists
-    if [[ ! -f "$PLAYBOOKS_USER_PATH/$name.yml" && ! -L "$PLAYBOOKS_USER_PATH/$name.yml" ]]; then
-      echo "Playbook does not exist: $name"
-      exit 1
-    fi
+if [[ -z "$name" ]]; then
+  echo 'Missing option: --name <name>' >&2
+  exit 1
+fi
+# check on name
+if [[ ! "$name" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ || "$name" == cli_install ]]; then
+  printf 'Invalid playbook name: %s\n' "$name" >&2
+  exit 1
+fi
 
-    # protect community playbooks
-    if [[ -e "$PLAYBOOKS_PATH/$name.yml" || -L "$PLAYBOOKS_PATH/$name.yml" ]]; then
-      echo "Playbook cannot be deleted: $name"
-      exit 1
-    fi
+targets=("playbooks/$name.yml" "playbooks/$name.yaml" "roles/$name")
+
+if [[ ! -e "$workspace/.git" ]]; then
+  printf 'Missing cluster repository: %s\n' "$workspace" >&2
+  exit 1
+fi
+
+cd "$workspace"
+
+# protect symlinked parent directories
+if [[ -L playbooks || -L roles ]]; then
+  printf 'Playbook cannot be deleted: %s\n' "$name" >&2
+  exit 1
+fi
+
+# check if exists
+if [[ -z "$(git ls-tree --name-only HEAD -- "${targets[@]}")" ]]; then
+  printf 'Playbook does not exist: %s\n' "$name" >&2
+  exit 1
+fi
+
+# Check GitHub CLI and get the signed-in user.
+if ! gh_path="$(command -v gh)"; then
+  echo "Missing tool: gh" >&2
+  exit 1
+fi
+if ! github_user="$(GH_PROMPT_DISABLED=1 "$gh_path" api --hostname github.com user 2>/dev/null |
+    python3 -c 'import json, sys; print(json.load(sys.stdin)["login"])' 2>/dev/null)" ||
+    [[ -z "$github_user" ]]; then
+  echo "Login failed: use gh auth login" >&2
+  exit 1
+fi
+
+if ! branch="$(git symbolic-ref --quiet --short HEAD)"; then
+  echo "Switch to a branch before deleting a playbook" >&2
+  exit 1
+fi
+
+github_git() {
+  git -c credential.helper= \
+    -c "credential.https://github.com.helper=!\"$gh_path\" auth git-credential" "$@"
+}
+
+# check on branch
+github_git fetch --no-tags origin "refs/heads/$branch"
+remote_head="$(git rev-parse --verify FETCH_HEAD)"
+if [[ "$(git rev-parse HEAD)" != "$remote_head" ]]; then
+  printf 'Branch is out of sync: %s. Sync with origin before deleting a playbook.\n' "$branch" >&2
+  exit 1
+fi
+
+# confirm deletion
+printf 'Delete playbook %s? [y/N] ' "$name" >&2
+if ! read -r answer || [[ "$answer" != [yY] && "$answer" != [yY][eE][sS] ]]; then
+  echo "Deletion cancelled."
+  exit 0
+fi
+
+# protect uncommitted files in the selected paths
+if [[ -n "$(git status --porcelain --untracked-files=all --ignored -- "${targets[@]}")" ]]; then
+  printf 'Playbook has local changes: %s\n' "$name" >&2
+  exit 1
+fi
+
+tracked_targets=()
+for target in "${targets[@]}"; do
+  if git cat-file -e "HEAD:$target" 2>/dev/null; then
+    tracked_targets+=("$target")
   fi
 done
 
-# check on branch
-cd "$PLAYBOOKS_USER_PATH" || exit 1
-github_branch="$(cat "$PLAYBOOKS_USER_PATH/GITHUB_PUSH_BRANCH")" || exit 1
-current_branch="$(git branch --show-current)" || exit 1
-if [[ -z "$github_branch" || "$current_branch" != "$github_branch" ]]; then
-  echo "Switch to the playbook branch before deleting: $github_branch" >&2
-  exit 1
+# configure Git identity if missing
+if [[ -z "$(git config user.name || true)" ]]; then
+  git config user.name "$github_user"
 fi
-
-# login to GitHub
-github_auth_status=$("$ODEV_PATH/src/gh_auth_status.sh")
-if [ "$github_auth_status" = "0" ]; then
-  gh auth login || exit 1
-fi
-github_user="$(gh api user --jq .login)" || exit 1
-
-# configure git identity if missing
-if ! git config user.name >/dev/null; then
-  git config user.name "$github_user" || exit 1
-fi
-if ! git config user.email >/dev/null; then
-  git config user.email "${github_user}@users.noreply.github.com" || exit 1
-fi
-
-# include the companion variables file when tracked
-targets=("$name.yml")
-if git ls-files --error-unmatch -- "${name}_vars.yml" >/dev/null 2>&1; then
-  targets+=("${name}_vars.yml")
+if [[ -z "$(git config user.email || true)" ]]; then
+  git config user.email "$github_user@users.noreply.github.com"
 fi
 
 # delete and commit only this playbook, then push the checked branch
-git rm -- "${targets[@]}" || exit 1
-git commit --only -m "Delete playbook $name" -- "${targets[@]}" || exit 1
-git push origin "$github_branch" || exit 1
+git rm -r -- "${tracked_targets[@]}"
+git commit --only -m "Delete playbook $name" -- "${tracked_targets[@]}"
+if ! github_git push origin "HEAD:refs/heads/$branch"; then
+  printf 'Push failed: deletion of %s was committed locally. Sync with origin and retry the push.\n' "$name" >&2
+  exit 1
+fi
 
 # print
-echo "Playbook deleted: $name"
+printf 'Playbook deleted: %s\n' "$name"
 
 # author: https://github.com/jmoya82
