@@ -65,33 +65,31 @@ UPDATE_FLAGS=(
 )
 
 # GitHub
-GH_DESCRIPTION="GitHub support for community repositories" #"Manage and share your workflows and playbooks"
+GH_DESCRIPTION="GitHub support for my_oreol_mgmt"
 GH_FLAGS=(
 )
 # push
-GH_PUSH_DESCRIPTION="Pushes your changes to your GitHub fork"
+GH_PUSH_DESCRIPTION="Pushes the current branch to origin"
 GH_PUSH_FLAGS=(
-  "workflow,w,Workflow name,-,-"
-  "playbook,p,Playbook name,-,-"
+  "cluster,c,Cluster to commit,-,-"
+  "playbook,p,Playbook and matching role to commit,-,-"
+  "comment,,Commit subject,-,-"
 )
 GH_PUSH_FLAGS_MANDATORY=""
 # pull
-GH_PULL_DESCRIPTION="Fetches and merges community main and fork branches locally"
+GH_PULL_DESCRIPTION="Pulls changes from origin into the current branch"
 GH_PULL_FLAGS=(
 )
 GH_PULL_FLAGS_MANDATORY=""
 # pr
-GH_PR_DESCRIPTION="Proposes your changes to the community repository"
+GH_PR_DESCRIPTION="Opens a pull request for the pushed branch on origin"
 GH_PR_FLAGS=(
-  "workflow,w,Workflow name,-,-"
-  "playbook,p,Playbook name,-,-"
 )
 GH_PR_FLAGS_MANDATORY=""
 # diff
-GH_DIFF_DESCRIPTION="Shows uncommitted changes to your workflow or playbook"
+GH_DIFF_DESCRIPTION="Shows uncommitted changes in my_oreol_mgmt"
 GH_DIFF_FLAGS=(
-  "workflow,w,Workflow name,-,-"
-  "playbook,p,Playbook name,-,-"
-  "file,f,Workflow file name (optional),-,-"
+  "cluster,c,Cluster name,-,-"
+  "playbook,p,Playbook and matching role,-,-"
 )
 GH_DIFF_FLAGS_MANDATORY=""
