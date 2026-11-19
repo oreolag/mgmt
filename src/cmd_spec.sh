@@ -59,10 +59,12 @@ RUN_PLAYBOOK_FLAGS=(
 RUN_PLAYBOOK_FLAGS_MANDATORY="name"
 
 # update
-UPDATE_DESCRIPTION="Update omgmt to the latest release or main. Both modes refresh the Ansible collection using requirements.yml"
+UPDATE_DESCRIPTION="Update omgmt and refresh the Oreol Ansible Collection"
 UPDATE_FLAGS=(
-  "main,m,Use main branch instead of release,-,-"
+  "main,m,Use main branch instead of the latest release,-,-"
 )
+UPDATE_COLLECTION_DESCRIPTION="Update the Oreol Ansible Collection"
+UPDATE_COLLECTION_FLAGS=()
 
 # GitHub
 GH_DESCRIPTION="GitHub support for my_oreol_mgmt"

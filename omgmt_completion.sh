@@ -35,6 +35,11 @@ _omgmt_complete() {
       for candidate in -h --help; do
         [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
       done
+      if [[ ${COMP_WORDS[1]} == update && $current == -* ]]; then
+        for candidate in -m --main; do
+          [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
+        done
+      fi
       [[ $current != -* && -d "$root/cmd/${COMP_WORDS[1]}" ]] || return 0
       for file in "$root/cmd/${COMP_WORDS[1]}"/*.sh; do
         [[ -x "$file" ]] || continue

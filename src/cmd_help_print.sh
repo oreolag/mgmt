@@ -85,7 +85,15 @@ echo ""
 
 # usage
 echo "${bold}USAGE:${normal}"
-if [ "$SUBCOMMAND" = "examine" ] || [ "$SUBCOMMAND" = "update" ]; then
+if [[ "$COMMAND" == "-" && "$SUBCOMMAND" == update ]]; then
+  echo "  $CLI_NAME update [flags]"
+  echo "  $CLI_NAME update collection"
+  echo ""
+  echo "${bold}COMMANDS:${normal}"
+  printf "  %-16s %s\n" collection "Update only the Oreol Ansible Collection"
+  echo ""
+  echo "${bold}FLAGS:${normal}"
+elif [ "$SUBCOMMAND" = "examine" ]; then
   echo "  $CLI_NAME $SUBCOMMAND [flags]"
   echo ""
   echo "${bold}FLAGS:${normal}"
@@ -108,7 +116,7 @@ elif [ ! "$COMMAND" = "" ] && [ "$SUBCOMMAND" = "-" ]; then
 elif [ ! "$COMMAND" = "" ] && [ ! "$SUBCOMMAND" = "" ]; then
   # cmd/new/nccl.sh
   #usage="${CLI_NAME} ${COMMAND} ${SUBCOMMAND}"
-  if [[ "$COMMAND" == "gh" && -z "${PARAMS[0]:-}" ]]; then
+  if [[ -z "${PARAMS[0]:-}" && ( "$COMMAND" == gh || "$COMMAND" == update ) ]]; then
     echo "  $CLI_NAME $COMMAND $SUBCOMMAND"
     echo ""
     echo "${bold}FLAGS:${normal}"

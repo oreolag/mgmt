@@ -174,7 +174,9 @@ if [[ "$script" == "$OMGMT_PATH/cmd/"*/* || "$cmd" == update ]]; then
   for arg in "$@"; do
     case "$arg" in
       -h|--help)
-        [[ "$cmd" != update ]] || subcmd=""
+        if [[ "$cmd" == update && "$subcmd" == -* ]]; then
+          subcmd=""
+        fi
         print_command_help "$cmd" "$subcmd"
         exit $?
         ;;
