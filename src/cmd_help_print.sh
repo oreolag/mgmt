@@ -60,7 +60,7 @@ ARGV=("$@")
 # ---------------------------------------
 if [[ "$mode" == "--maybe" ]]; then
   found=0
-  for a in "${ARGV[@]}"; do
+  for a in ${ARGV[@]+"${ARGV[@]}"}; do
     if [[ "$a" == "-h" || "$a" == "--help" ]]; then
       found=1
       break
