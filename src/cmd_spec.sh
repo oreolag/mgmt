@@ -52,7 +52,7 @@ RUN_FLAGS=(
 RUN_PLAYBOOK_DESCRIPTION="Runs a playbook on the selected hosts"
 RUN_PLAYBOOK_FLAGS=(
   "cluster,c,Cluster name (required when more than one exists),-,-"
-  "hosts,,Target host or group from the management inventory (default: local),-,local"
+  "hosts,,Target host or group from the selected cluster's inventory (default: local),-,local"
   "name,n,Playbook name,-,-"
   "vars,v,Extra variables (example: \"force=true value=10\"),-,-"
 )
