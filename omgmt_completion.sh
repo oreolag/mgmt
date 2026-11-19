@@ -51,10 +51,11 @@ _omgmt_complete() {
         workspace="${OMGMT_CLUSTER_PATH:-$HOME/my_oreol_mgmt}"
         case "${COMP_WORDS[2]}" in
           cluster)
-            while IFS= read -r candidate; do
+            while IFS= read -r file; do
+              candidate=${file##*/}
               [[ $candidate =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ && $candidate == "$current"* ]] &&
                 COMPREPLY+=("$candidate")
-            done < <(git -C "$workspace" ls-tree -d --name-only HEAD:clusters 2>/dev/null)
+            done < <(find "$workspace/clusters" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
             ;;
           playbook)
             while IFS= read -r candidate; do
@@ -62,9 +63,10 @@ _omgmt_complete() {
                  $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
             done < <(
               {
-                git -C "$workspace" ls-tree --name-only HEAD:playbooks 2>/dev/null |
-                  sed -nE 's/\.ya?ml$//p'
-                git -C "$workspace" ls-tree -d --name-only HEAD:roles 2>/dev/null
+                find "$workspace/playbooks" -mindepth 1 -maxdepth 1 \( -type f -o -type l \) \
+                  2>/dev/null | sed -nE 's|.*/([^/]+)\.ya?ml$|\1|p'
+                find "$workspace/roles" -mindepth 1 -maxdepth 1 -type d 2>/dev/null |
+                  sed 's|.*/||'
               } | sort -u
             )
             ;;
