@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Build release bundle
+        id: bundle
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [[ ! "$version" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]]; then
+            echo "Invalid release tag: $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+
+          printf '%s\n' "$version" > VERSION
+          date -u +%F > RELEASE_DATE
+
+          archive="$RUNNER_TEMP/mgmt_${GITHUB_REF_NAME}.tar.gz"
+          tar --exclude=.git --transform='flags=r;s,^\.,mgmt,' -czf "$archive" .
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+
+      - name: Update main with VERSION and RELEASE_DATE
+        run: |
+          git fetch origin main
+          main_checkout="$RUNNER_TEMP/mgmt-main"
+          git worktree add --detach "$main_checkout" FETCH_HEAD
+
+          cp VERSION RELEASE_DATE "$main_checkout/"
+          git -C "$main_checkout" add VERSION RELEASE_DATE
+          if git -C "$main_checkout" diff --cached --quiet; then
+            exit 0
+          fi
+
+          git -C "$main_checkout" \
+            -c user.name="github-actions[bot]" \
+            -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "Release ${GITHUB_REF_NAME}"
+          git -C "$main_checkout" push origin HEAD:refs/heads/main
+
+      - name: Create GitHub Release and upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.bundle.outputs.archive }}
+          fail_on_unmatched_files: true
