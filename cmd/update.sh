@@ -40,6 +40,9 @@ if [[ -z "$ref" ]]; then
   fi
 fi
 
+# Read the Odev color constant before replacing the installed snapshot.
+COLOR_PASSED="$("$OMGMT_PATH/src/constant_get.sh" "$OMGMT_PATH" COLOR_PASSED)"
+
 # Stage the update next to the installed software.
 install_dir="$(dirname "$software_dir")"
 staging="$(mktemp -d "$install_dir/.update.XXXXXXXX")"
@@ -92,6 +95,10 @@ trap 'cleanup; rmdir "$lock"' EXIT
 mv "$software_dir" "$previous"
 mv "$snapshot" "$software_dir"
 mv -f "$staging/ansible-play-completion.bash" "$install_dir/ansible-play-completion.bash"
-printf '✓ omgmt updated: %s\n' "$ref"
+if [[ -t 1 ]]; then
+  printf '%b✓\033[0m omgmt updated: %s\n' "$COLOR_PASSED" "$ref"
+else
+  printf '✓ omgmt updated: %s\n' "$ref"
+fi
 
 # author: https://github.com/jmoya82
