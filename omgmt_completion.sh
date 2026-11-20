@@ -57,6 +57,8 @@ _omgmt_complete() {
           value_kind=cluster ;;
         delete:playbook:--name|delete:playbook:-n|run:playbook:--name|run:playbook:-n)
           value_kind=playbook ;;
+        run:playbook:--hosts)
+          value_kind=hosts ;;
       esac
       if [[ -n "${value_kind:-}" ]]; then
         workspace="${OMGMT_CLUSTER_PATH:-}"
@@ -65,6 +67,38 @@ _omgmt_complete() {
         fi
         workspace="${workspace:-$HOME/my_oreol_mgmt}"
         case "$value_kind" in
+          hosts)
+            local cluster=- directory inventory i
+            for ((i=3; i<COMP_CWORD-1; i+=2)); do
+              case "${COMP_WORDS[i]}" in
+                --cluster|-c) cluster=${COMP_WORDS[i+1]} ;;
+              esac
+            done
+            if [[ $cluster == - ]]; then
+              while IFS= read -r directory; do
+                candidate=${directory##*/}
+                [[ $candidate =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ ]] || continue
+                [[ $cluster == - ]] || return 0
+                cluster=$candidate
+              done < <(find -L "$workspace/clusters" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+            fi
+            [[ $cluster =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ ]] || return 0
+            inventory="$workspace/clusters/$cluster/hosts"
+            [[ -f "$inventory" && -r "$inventory" ]] || return 0
+            while IFS= read -r candidate; do
+              [[ $candidate == "$current"* ]] && COMPREPLY+=("$candidate")
+            done < <(
+              ANSIBLE_CONFIG="$root/ansible.cfg" ansible-inventory -i "$inventory" --list 2>/dev/null |
+                python3 -c 'import json, sys
+inventory = json.load(sys.stdin)
+names = set(inventory) - {"_meta"}
+for group, data in inventory.items():
+    if group != "_meta":
+        names.update(data.get("hosts", ()))
+for name in sorted(names):
+    print(name)' 2>/dev/null
+            )
+            ;;
           cluster)
             while IFS= read -r file; do
               candidate=${file##*/}
