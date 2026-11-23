@@ -61,7 +61,7 @@ for field in "" ${mandatory_flags//,/ }; do
   done <<< "$parsed_flags"
 
   if [[ "$name" != "-" && ! "${name#oreol.mgmt.}" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ ]]; then
-    printf 'Invalid playbook name: %s\n' "$name" >&2
+    python3 "$software/src/odev_messages.py" --error invalid_playbook_name -- "$name"
     exit 1
   fi
 done
@@ -80,7 +80,7 @@ if [[ ! "$cluster" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ || ! -d "$workspace/clusters/
 fi
 inventory="$workspace/clusters/$cluster/hosts"
 if [[ ! -f "$inventory" ]]; then
-  printf 'Missing file: %s\n' "$inventory" >&2
+  python3 "$software/src/odev_messages.py" --error file_not_found -- "$inventory"
   exit 1
 fi
 
@@ -94,7 +94,7 @@ if [[ "$name" == oreol.mgmt.* || ! -f "$playbook" ]]; then
   collection_name="${collection_name//-/_}"
   collection_playbook="$software/collections/ansible_collections/oreol/mgmt/playbooks/$collection_name"
   if [[ ! -f "$collection_playbook.yml" && ! -f "$collection_playbook.yaml" ]]; then
-    printf 'Playbook does not exist: %s\n' "$name" >&2
+    python3 "$software/src/odev_messages.py" --error playbook_not_found -- "$name"
     exit 1
   fi
   playbook="oreol.mgmt.$collection_name"

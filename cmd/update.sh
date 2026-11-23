@@ -13,7 +13,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     -m|--main) ref=main ;;
     -h|--help) exec "$OMGMT_PATH/omgmt.sh" update --help ;;
-    *) printf 'Unknown flag: %s\n' "$1" >&2; exit 1 ;;
+    *) python3 "$OMGMT_PATH/src/odev_messages.py" --error unknown_flag -- "$1"; exit 1 ;;
   esac
   shift
 done
@@ -25,12 +25,12 @@ fi
 
 if [[ -z "$ref" ]]; then
   if ! gh_path="$(command -v gh)"; then
-    echo "Missing tool: gh" >&2
+    python3 "$OMGMT_PATH/src/odev_messages.py" --error missing_tool -- gh
     exit 1
   fi
   logged_in="$(bash "$OMGMT_PATH/src/gh_auth_status.sh" "$gh_path")"
   if [[ "$logged_in" == "0" ]]; then
-    echo "Login failed: use gh auth login" >&2
+    python3 "$OMGMT_PATH/src/odev_messages.py" --error login_failed -- gh
     exit 1
   fi
   ref="$("$gh_path" release view --repo oreolag/mgmt --json tagName --jq .tagName)"

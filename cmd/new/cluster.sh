@@ -49,7 +49,7 @@ destinations=("clusters/$name")
 commit_paths=("${destinations[@]}")
 
 if [[ ! -e "$workspace/.git" ]]; then
-  printf 'Missing cluster repository: %s\n' "$workspace" >&2
+  python3 "$software/src/odev_messages.py" --error invalid_git_repository -- "$workspace"
   exit 1
 fi
 
@@ -63,14 +63,14 @@ done
 
 # Check GitHub CLI and get the signed-in user.
 if ! gh_path="$(command -v gh)"; then
-  echo "Missing tool: gh" >&2
+  python3 "$software/src/odev_messages.py" --error missing_tool -- gh
   exit 1
 fi
 # check on GitHub CLI
 auth_status_script="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/src/gh_auth_status.sh"
 logged_in="$(bash "$auth_status_script" "$gh_path")"
 if [[ "$logged_in" == "0" ]]; then
-  echo "Login failed: use gh auth login" >&2
+  python3 "$software/src/odev_messages.py" --error login_failed -- gh
   exit 1
 fi
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # format
 bold=$(tput bold 2>/dev/null || true)
 normal=$(tput sgr0 2>/dev/null || true)
@@ -19,12 +21,12 @@ print_help() {
 case "${1:-}" in
   --help|-h) print_help; exit 0 ;;
   "") ;;
-  *) echo "Unknown option: $1" >&2; exit 1 ;;
+  *) python3 "$SCRIPT_DIR/odev_messages.py" --error unknown_option -- "$1"; exit 1 ;;
 esac
 
 # ensure we are inside the management repository
 if [[ ! -e .git ]]; then
-  echo "Error: not inside a git repository" >&2
+  python3 "$SCRIPT_DIR/odev_messages.py" --error invalid_git_repository -- "$PWD"
   exit 1
 fi
 

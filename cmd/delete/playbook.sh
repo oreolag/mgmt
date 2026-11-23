@@ -40,7 +40,7 @@ for field in "" ${mandatory_flags//,/ }; do
   done <<< "$parsed_flags"
 
   if [[ "$name" != "-" && ( ! "$name" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_-]*$ || "$name" == cli_install ) ]]; then
-    printf 'Invalid playbook name: %s\n' "$name" >&2
+    python3 "$software/src/odev_messages.py" --error invalid_playbook_name -- "$name"
     exit 1
   fi
 done
@@ -48,7 +48,7 @@ done
 targets=("playbooks/$name.yml" "playbooks/$name.yaml" "roles/$name")
 
 if [[ ! -e "$workspace/.git" ]]; then
-  printf 'Missing cluster repository: %s\n' "$workspace" >&2
+  python3 "$software/src/odev_messages.py" --error invalid_git_repository -- "$workspace"
   exit 1
 fi
 
@@ -56,26 +56,26 @@ cd "$workspace"
 
 # protect symlinked parent directories
 if [[ -L playbooks || -L roles ]]; then
-  printf 'Playbook cannot be deleted: %s\n' "$name" >&2
+  python3 "$software/src/odev_messages.py" --error playbook_cannot_be_deleted -- "$name"
   exit 1
 fi
 
 # check if exists
 if [[ -z "$(git ls-tree --name-only HEAD -- "${targets[@]}")" ]]; then
-  printf 'Playbook does not exist: %s\n' "$name" >&2
+  python3 "$software/src/odev_messages.py" --error playbook_not_found -- "$name"
   exit 1
 fi
 
 # Check GitHub CLI and get the signed-in user.
 if ! gh_path="$(command -v gh)"; then
-  echo "Missing tool: gh" >&2
+  python3 "$software/src/odev_messages.py" --error missing_tool -- gh
   exit 1
 fi
 # check on GitHub CLI
 auth_status_script="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/src/gh_auth_status.sh"
 logged_in="$(bash "$auth_status_script" "$gh_path")"
 if [[ "$logged_in" == "0" ]]; then
-  echo "Login failed: use gh auth login" >&2
+  python3 "$software/src/odev_messages.py" --error login_failed -- gh
   exit 1
 fi
 
@@ -139,6 +139,6 @@ if ! github_git push origin "HEAD:refs/heads/$branch"; then
 fi
 
 # print
-printf 'Playbook deleted: %s\n' "$name"
+python3 "$software/src/odev_messages.py" --success deleted_playbook -- "$name"
 
 # author: https://github.com/jmoya82

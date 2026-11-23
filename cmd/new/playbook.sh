@@ -40,7 +40,7 @@ for field in "" ${mandatory_flags//,/ }; do
   done <<< "$parsed_flags"
 
   if [[ "$name" != "-" && ( ! "$name" =~ ^[a-z][a-z0-9_]*$ || "$name" == cli_install ) ]]; then
-    printf 'Invalid playbook name: %s\n' "$name" >&2
+    python3 "$software/src/odev_messages.py" --error invalid_playbook_name -- "$name"
     exit 1
   fi
 done
@@ -49,14 +49,14 @@ destinations=("playbooks/$name.yml" "playbooks/$name.yaml" "roles/$name")
 commit_paths=("playbooks/$name.yml" "roles/$name")
 
 if [[ ! -e "$workspace/.git" ]]; then
-  printf 'Missing cluster repository: %s\n' "$workspace" >&2
+  python3 "$software/src/odev_messages.py" --error invalid_git_repository -- "$workspace"
   exit 1
 fi
 
 # Check if the name exists locally before contacting GitHub.
 for destination in "${destinations[@]}"; do
   if [[ -e "$workspace/$destination" || -L "$workspace/$destination" ]]; then
-    printf 'Playbook already exists: %s\n' "$name" >&2
+    python3 "$software/src/odev_messages.py" --error playbook_already_exists -- "$name"
     exit 1
   fi
 done
@@ -71,14 +71,14 @@ done
 
 # Check GitHub CLI and get the signed-in user.
 if ! gh_path="$(command -v gh)"; then
-  echo "Missing tool: gh" >&2
+  python3 "$software/src/odev_messages.py" --error missing_tool -- gh
   exit 1
 fi
 # check on GitHub CLI
 auth_status_script="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/src/gh_auth_status.sh"
 logged_in="$(bash "$auth_status_script" "$gh_path")"
 if [[ "$logged_in" == "0" ]]; then
-  echo "Login failed: use gh auth login" >&2
+  python3 "$software/src/odev_messages.py" --error login_failed -- gh
   exit 1
 fi
 
@@ -104,7 +104,7 @@ github_git fetch --no-tags origin "refs/heads/$branch"
 remote_head="$(git rev-parse --verify FETCH_HEAD)"
 for destination in "${destinations[@]}"; do
   if git cat-file -e "$remote_head:$destination" 2>/dev/null; then
-    printf 'Playbook already exists: %s\n' "$name" >&2
+    python3 "$software/src/odev_messages.py" --error playbook_already_exists -- "$name"
     exit 1
   fi
 done
@@ -131,4 +131,4 @@ if ! github_git push origin "HEAD:refs/heads/$branch"; then
   printf 'Push failed: %s was committed locally. Sync with origin and retry the push.\n' "$name" >&2
   exit 1
 fi
-printf 'Playbook created: %s\n' "$name"
+python3 "$software/src/odev_messages.py" --success created_playbook -- "$name"

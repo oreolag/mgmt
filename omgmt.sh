@@ -143,7 +143,7 @@ cmd="${1:-}"
 subcmd="${2:-}"
 
 if [[ ! "$cmd" =~ ^[a-z][a-z0-9_-]*$ || ( -n "$subcmd" && "$subcmd" != -* && ! "$subcmd" =~ ^[a-z][a-z0-9_-]*$ ) ]]; then
-  echo "Command not found: $cmd $subcmd" >&2
+  python3 "$OMGMT_PATH/src/odev_messages.py" --error command_not_found -- "$cmd${subcmd:+ $subcmd}"
   exit 1
 fi
 
@@ -165,7 +165,7 @@ else
 fi
 
 if [[ ! -x "$script" ]]; then
-  echo "Command not found: ${cmd} ${subcmd:-}"
+  python3 "$OMGMT_PATH/src/odev_messages.py" --error command_not_found -- "$cmd${subcmd:+ $subcmd}"
   exit 1
 fi
 
