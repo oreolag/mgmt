@@ -36,9 +36,9 @@ done
 source "$CMD_SPEC"
 
 if [[ "$KEY" == "ALL" ]]; then
-  names=(new run update gh_description delete)
+  names=(new run update gh_description delete get_description)
   i=0
-  for key in NEW RUN UPDATE GH DELETE; do
+  for key in NEW RUN UPDATE GH DELETE GET; do
     desc_var="${key}_DESCRIPTION"
     echo "${names[$i]}=${!desc_var}"
     i=$((i + 1))

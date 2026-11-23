@@ -27,6 +27,17 @@ DELETE_PLAYBOOK_FLAGS=(
 )
 DELETE_PLAYBOOK_FLAGS_MANDATORY="name"
 
+# get
+GET_DESCRIPTION="System and device information retrieval"
+GET_FLAGS=(
+)
+# hosts
+GET_HOSTS_DESCRIPTION="Show the selected cluster's Ansible inventory"
+GET_HOSTS_FLAGS=(
+  "cluster,c,Cluster name (required when more than one exists),-,-"
+)
+GET_HOSTS_FLAGS_MANDATORY=""
+
 # new
 NEW_DESCRIPTION="Create a cluster or a playbook and role"
 NEW_FLAGS=(
