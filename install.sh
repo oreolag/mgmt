@@ -148,6 +148,9 @@ if [ "$installation_type" = "admin_local_repo" ]; then
         "$workspace" "$github_user" "$gh_path" </dev/null
     printf 'Workspace: %s\n' "$workspace"
 elif [ "$installation_type" = "odev_plugin" ]; then
+    # Reuse the recursive checkout instead of downloading it again in Ansible.
+    COPYFILE_DISABLE=1 tar -cf "$TMP_PATH/software.tar" --exclude='.git' --exclude='.DS_Store' .
+    export MGMT_SOFTWARE_ARCHIVE="$TMP_PATH/software.tar"
     echo "${bold}[INFO] Running installer...${normal}"
     ansible-playbook \
     -i localhost, \

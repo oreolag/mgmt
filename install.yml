@@ -8,7 +8,6 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     mgmt_remote_path: /opt
-    mgmt_repository: "https://github.com/oreolag/mgmt.git"
     admin_repo_user: "{{ lookup('ansible.builtin.env', 'SUDO_USER') or 'root' }}"
     # control variables
     #delete: false
@@ -185,6 +184,18 @@
     
     # odev_plugin
     - block:
+        - name: Check the downloaded software archive
+          ansible.builtin.stat:
+            path: "{{ lookup('ansible.builtin.env', 'MGMT_SOFTWARE_ARCHIVE') }}"
+          register: mgmt_software_archive
+          delegate_to: localhost
+
+        - name: Require the downloaded software archive
+          ansible.builtin.assert:
+            that:
+              - mgmt_software_archive.stat.isreg | default(false)
+            fail_msg: "Run install.sh odev_plugin to prepare the MGMT software archive."
+
         - name: Ensure required packages are installed
           ansible.builtin.apt:
             name:
@@ -207,18 +218,12 @@
             group: root
             mode: "0755"
 
-        - name: Clone mgmt repository into {{ mgmt_remote_path }}/omgmt
-          ansible.builtin.git:
-            repo: "{{ mgmt_repository }}"
+        - name: Install the downloaded MGMT software and submodules
+          ansible.builtin.unarchive:
+            src: "{{ lookup('ansible.builtin.env', 'MGMT_SOFTWARE_ARCHIVE') }}"
             dest: "{{ mgmt_remote_path }}/omgmt"
-            version: main
-            update: true
-            force: true
-
-        - name: Update all submodules
-          ansible.builtin.command:
-            cmd: git submodule update --init --recursive --remote --merge
-            chdir: "{{ mgmt_remote_path }}/omgmt"
+            owner: root
+            group: root
 
         - name: Install Oreol Ansible Collection
           ansible.builtin.command:
