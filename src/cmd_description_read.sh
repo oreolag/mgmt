@@ -9,8 +9,8 @@ set -euo pipefail
 #   KEY=DESCRIPTION lines when KEY is ALL (main help)
 #
 # Examples:
-#   cmd_description_read.sh /opt/odev NEW
-#   cmd_description_read.sh /opt/odev NEW --db /opt/odev/workflows/foo/cmd_spec.sh
+#   cmd_description_read.sh /opt/odev CREATE
+#   cmd_description_read.sh /opt/odev CREATE --db /opt/odev/workflows/foo/cmd_spec.sh
 
 ODEV_PATH="$1"
 KEY="$2"
@@ -36,9 +36,9 @@ done
 source "$CMD_SPEC"
 
 if [[ "$KEY" == "ALL" ]]; then
-  names=(new run update gh_description delete get_description)
+  names=(create run update gh_description delete get_description)
   i=0
-  for key in NEW RUN UPDATE GH DELETE GET; do
+  for key in CREATE RUN UPDATE GH DELETE GET; do
     desc_var="${key}_DESCRIPTION"
     echo "${names[$i]}=${!desc_var}"
     i=$((i + 1))

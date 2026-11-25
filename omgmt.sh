@@ -43,7 +43,7 @@ print_server_status() {
 }
 
 print_help() {
-  local command_descriptions key description gh_description get_description update new run delete
+  local command_descriptions key description gh_description get_description update create run delete
   command_descriptions="$("$OMGMT_PATH/src/cmd_description_read.sh" "$OMGMT_PATH" "ALL")"
   while IFS='=' read -r key description; do
     printf -v "$key" '%s' "$description"
@@ -60,7 +60,7 @@ print_help() {
   echo "  update:          $update"
   echo ""
   echo "${bold}MGMT COMMANDS${normal}"
-  echo "  new:             $new"
+  echo "  create:          $create"
   echo "  run:             $run"
   echo "  delete:          $delete"
   echo ""

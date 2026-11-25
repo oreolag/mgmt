@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# example: omgmt new
+# example: omgmt create
 
 # get script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-COMMAND="new"
+COMMAND="create"
 
 CLI_NAME="omgmt"
 SUBCOMMAND="-"

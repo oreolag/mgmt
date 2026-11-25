@@ -101,7 +101,7 @@ echo ""
 
 if [ "$installation_type" = "admin_local_repo" ]; then
     echo "${bold}[INFO] Installing omgmt software...${normal}"
-    # Bundle the starter files for omgmt new cluster.
+    # Bundle the starter files for omgmt create cluster.
     COPYFILE_DISABLE=1 tar -chf templates/cluster.tar --exclude='.DS_Store' hosts group_vars cmdb
     COPYFILE_DISABLE=1 tar -cf "$TMP_PATH/software.tar" --exclude='.git' --exclude='.DS_Store' \
         --exclude='./hosts' --exclude='./group_vars' --exclude='./cmdb' .

@@ -34,7 +34,7 @@ validate_value() {
       [[ "$value" == "$c" ]] && { ok=1; break; }
     done
     [[ "$ok" == "1" ]] && return 0
-    echo "Invalid value for --$name: '$value' (allowed: $range)" >&2
+    python3 "$(dirname "${BASH_SOURCE[0]}")/odev_messages.py" --error invalid_value -- "--$name" "$value" "one of $range"
     return 1
   fi
 
@@ -43,11 +43,11 @@ validate_value() {
     local lo="${range%-*}"
     local hi="${range#*-}"
     if ! is_int "$value"; then
-      echo "Invalid value for --$name: '$value' (expected integer in range: $range)" >&2
+      python3 "$(dirname "${BASH_SOURCE[0]}")/odev_messages.py" --error invalid_value -- "--$name" "$value" "integer in range $range"
       return 1
     fi
     if (( value < lo || value > hi )); then
-      echo "Invalid value for --$name: '$value' (expected range: $range)" >&2
+      python3 "$(dirname "${BASH_SOURCE[0]}")/odev_messages.py" --error invalid_value -- "--$name" "$value" "integer in range $range"
       return 1
     fi
     return 0
@@ -64,7 +64,7 @@ while [[ $# -gt 0 ]]; do
     IFS=',' read -r name short desc range def <<< "$p"
     if [[ "$1" == "--$name" || ( -n "$short" && "$1" == "-$short" ) ]]; then
       if [[ $# -lt 2 || -z "$2" || "$2" == --* || "$2" =~ ^-[[:alpha:]] ]]; then
-        echo "Missing value for $1" >&2
+        python3 "$(dirname "${BASH_SOURCE[0]}")/odev_messages.py" --error missing_value -- "$1"
         exit 1
       fi
       val="$2"
@@ -76,7 +76,7 @@ while [[ $# -gt 0 ]]; do
     fi
   done
 
-  [[ "$matched" == true ]] || { echo "Unknown flag: $1" >&2; exit 1; }
+  [[ "$matched" == true ]] || { python3 "$(dirname "${BASH_SOURCE[0]}")/odev_messages.py" --error unknown_flag -- "$1"; exit 1; }
 done
 
 # Emit only supplied flags. Use named variables for Bash 3 compatibility.

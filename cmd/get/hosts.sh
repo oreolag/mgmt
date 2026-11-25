@@ -56,7 +56,7 @@ done <<< "$parsed_flags"
 # Select the sole cluster when none was supplied.
 if [[ "$cluster" == "-" ]]; then
   if [[ -z "${clusters[0]:-}" ]]; then
-    echo 'Missing cluster: use omgmt new cluster --name <name>' >&2
+    echo 'No clusters found' >&2
     exit 1
   fi
   cluster="${clusters[0]}"

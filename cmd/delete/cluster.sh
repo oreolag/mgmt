@@ -62,7 +62,7 @@ fi
 
 # check if exists
 if [[ "$(git cat-file -t "HEAD:clusters/$name" 2>/dev/null || true)" != tree ]]; then
-  printf 'Cluster does not exist: %s\n' "$name" >&2
+  printf 'Cluster not found: %s\n' "$name" >&2
   exit 1
 fi
 

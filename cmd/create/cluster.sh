@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# example: omgmt new cluster --name test
+# example: omgmt create cluster --name test
 
 # get script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

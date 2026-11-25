@@ -7,7 +7,7 @@ set -euo pipefail
 #   subcommand: Description (one per line)
 #
 # Example:
-#   cmd_subcommands_read.sh /path/to/my_oreol_mgmt NEW
+#   cmd_subcommands_read.sh /path/to/my_oreol_mgmt CREATE
 #   playbook:    Adds a new playbook
 
 OMGMT_PATH="$1"

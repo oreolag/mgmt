@@ -97,7 +97,7 @@ elif [ "$SUBCOMMAND" = "examine" ]; then
   echo "  $CLI_NAME $SUBCOMMAND [flags]"
   echo ""
   echo "${bold}FLAGS:${normal}"
-elif [ "$COMMAND" = "new" ] && [ "$SUBCOMMAND" = "workflow" ]; then
+elif [ "$COMMAND" = "create" ] && [ "$SUBCOMMAND" = "workflow" ]; then
   #echo "  $CLI_NAME $COMMAND $SUBCOMMAND [--fork] [flags]"
   echo "  $CLI_NAME $COMMAND $SUBCOMMAND [flags]"
   echo ""
@@ -108,13 +108,13 @@ elif [ "$SUBCOMMAND" = "ifconfig" ]; then
   echo "${bold}FLAGS:${normal}"
   echo "  This command has no flags."
 elif [ ! "$COMMAND" = "" ] && [ "$SUBCOMMAND" = "-" ]; then
-  # cmd/new.sh
+  # cmd/create.sh
   #usage="${CLI_NAME} ${COMMAND}"
   echo "  $CLI_NAME $COMMAND [command]"
   echo ""
   echo "${bold}COMMANDS:${normal}"
 elif [ ! "$COMMAND" = "" ] && [ ! "$SUBCOMMAND" = "" ]; then
-  # cmd/new/nccl.sh
+  # cmd/create/nccl.sh
   #usage="${CLI_NAME} ${COMMAND} ${SUBCOMMAND}"
   if [[ -z "${PARAMS[0]:-}" && ( "$COMMAND" == gh || "$COMMAND" == update ) ]]; then
     echo "  $CLI_NAME $COMMAND $SUBCOMMAND"
@@ -177,7 +177,7 @@ echo "  -h, --help      Show this help"
 # Resolve the same command as the CLI so personal and community workflows
 # display the credit stored beside their actual scripts.
 case "$COMMAND" in
-  new|build|program|run|delete|validate)
+  create|build|program|run|delete|validate)
     help_odev_path="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     if workflow_script="$(bash "$help_odev_path/src/workflow_command_path.sh" "$help_odev_path" "$COMMAND" "$SUBCOMMAND" 2>/dev/null)" &&
        workflow_target="$(readlink -f "$workflow_script" 2>/dev/null)"; then

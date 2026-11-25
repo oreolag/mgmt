@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# example: omgmt new playbook --name test
+# example: omgmt create playbook --name test
 
 # get script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -141,7 +141,7 @@ for name in ${REQUIRED[@]+"${REQUIRED[@]}"}; do
       printf '%s' "$prompt" >&2
       read -r input || exit 1
     else
-      echo "cmd_prompt: missing required --$name (not interactive)" >&2
+      python3 "$(dirname "${BASH_SOURCE[0]}")/odev_messages.py" --error missing_required_flag -- "--$name"
       exit 1
     fi
 
