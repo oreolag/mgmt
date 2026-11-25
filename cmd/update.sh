@@ -42,9 +42,8 @@ if [[ -z "$ref" ]]; then
     python3 "$OMGMT_PATH/src/odev_messages.py" --error login_failed -- gh
     exit 1
   fi
-  ref="$("$gh_path" release view --repo oreolag/mgmt --json tagName --jq .tagName)"
-  if [[ -z "$ref" ]]; then
-    echo "Release not found: oreolag/mgmt" >&2
+  if ! ref="$("$gh_path" release view --repo oreolag/mgmt --json tagName --jq .tagName)" || [[ -z "$ref" ]]; then
+    echo "Could not determine the latest stable mgmt release. Update stopped." >&2
     exit 1
   fi
 fi

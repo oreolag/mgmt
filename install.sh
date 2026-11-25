@@ -84,18 +84,46 @@ else
         ansible \
         python3 \
         python3-pip \
+        curl \
         gh \
         sudo
 fi
 
 echo ""
-echo "${bold}[INFO] Cloning mgmt repository...${normal}"
+echo "${bold}[INFO] Finding the latest stable mgmt release...${normal}"
+
+if ! curl -fsSL https://api.github.com/repos/oreolag/mgmt/releases/latest -o "$TMP_PATH/release.json"; then
+    echo "Could not determine the latest stable mgmt release. Installation stopped." >&2
+    exit 1
+fi
+if ! release_info="$(python3 -c '
+import json, sys
+with open(sys.argv[1]) as source:
+    release = json.load(source)
+tag = release.get("tag_name")
+published = release.get("published_at")
+if (release.get("draft") or release.get("prerelease")
+        or not isinstance(tag, str) or not tag.strip()
+        or not isinstance(published, str) or not published.strip()):
+    sys.exit("No published stable mgmt release was found.")
+print(tag + "\t" + published.split("T")[0])
+' "$TMP_PATH/release.json")"; then
+    echo "Could not determine the latest stable mgmt release. Installation stopped." >&2
+    exit 1
+fi
+IFS=$'\t' read -r release_tag release_date <<< "$release_info"
+
+echo "${bold}[INFO] Cloning mgmt release $release_tag...${normal}"
 
 # Show download progress and fail if a transfer stalls for a full minute.
 git -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
-    clone --branch main --recursive --progress "$REPO_URL" "$TMP_PATH/mgmt"
+    clone --branch "$release_tag" --recursive --progress "$REPO_URL" "$TMP_PATH/mgmt"
 
 cd "$TMP_PATH/mgmt"
+
+# Tagged source files can predate the release metadata commit on main.
+printf '%s\n' "${release_tag#v}" > VERSION
+printf '%s\n' "$release_date" > RELEASE_DATE
 
 echo ""
 
