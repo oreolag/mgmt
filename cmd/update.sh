@@ -23,6 +23,15 @@ if [[ ! "$OMGMT_PATH" -ef "$software_dir" ]]; then
   exit 1
 fi
 
+if [[ "$ref" == main ]]; then
+  printf 'Update omgmt to main? [y/N]: ' >&2
+else
+  printf 'Update omgmt? [y/N]: ' >&2
+fi
+if ! read -r answer || [[ "$answer" != [yY] && "$answer" != [yY][eE][sS] ]]; then
+  exit 0
+fi
+
 if [[ -z "$ref" ]]; then
   if ! gh_path="$(command -v gh)"; then
     python3 "$OMGMT_PATH/src/odev_messages.py" --error missing_tool -- gh
