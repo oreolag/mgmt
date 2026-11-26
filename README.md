@@ -69,10 +69,22 @@ omgmt run playbook --name odev_storage_mount --cluster tailnet_de_javier --hosts
 
 ## Citation
 
+[![Zenodo](https://img.shields.io/badge/Zenodo-10.5281%2Fzenodo.24560295-blue)](https://doi.org/10.5281/zenodo.24560295)
 [![ACM](https://img.shields.io/badge/ACM-10.1145%2F3805700-green)](https://doi.org/10.1145/3805700)
 
 <!-- docs:mgmt_readme_supported_citation:start -->
 If you use `omgmt` in your research, development, or publications, please cite the following reference:
+
+```bibtex
+@misc{moya2026omgmt,
+  author       = {Javier Moya},
+  title        = {oreolag/mgmt: omgmt},
+  howpublished = {Zenodo},
+  year         = {2026},
+  note         = {\url{https://doi.org/10.5281/zenodo.24560295}},
+  doi          = {10.5281/zenodo.24560295}
+}
+```
 
 ```bibtex
 @article{moya2026hacc,
