@@ -33,7 +33,7 @@ Run the following command from the directory where you want to keep `my_oreol_mg
 curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo bash
 ```
 
-The installer checks out your GitHub repository in `./my_oreol_mgmt` and saves its path so you can run `omgmt` from any directory. If needed, run `gh auth login` first.
+The installer creates the `my_oreol_mgmt` repository in your GitHub account if it does not exist, or clones the existing repository. It stores the local checkout in `./my_oreol_mgmt` and saves its path so you can run `omgmt` from any directory. If needed, run `gh auth login` first.
 <!-- docs:mgmt_readme_installation:end -->
 
 <!-- docs:mgmt_readme_supported_platforms:start -->
