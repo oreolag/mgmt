@@ -17,9 +17,9 @@
   </p>
 </h1>
 
-`mgmt` simplifies software installation and low-level system configuration across heterogeneous compute clusters and remote servers. Built on the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) it brings together your inventory, variables, and configuration management database (CMDB).
+`omgmt` simplifies software installation and low-level system configuration across your Oreol clusters and remote servers. Built on the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) it brings together your inventory, variables, and configuration management database (CMDB).
 
-For Oreol-managed clusters, Oreol provides a customized `mgmt` repository for co-managing your infrastructure under your management agreement. For independently managed clusters and remote servers, follow the installation instructions below to get started.
+For Oreol-managed clusters, Oreol provides a customized `omgmt` repository for co-managing your infrastructure under your management agreement. For independently managed clusters and remote servers, follow the installation instructions below to get started.
 
 ## Installation
 Run the following command from the directory where you want to keep `my_oreol_mgmt` (see [Supported Platforms](#supported-platforms)):
@@ -30,69 +30,24 @@ curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo 
 
 The installer checks out your GitHub repository in `./my_oreol_mgmt` and saves its path so you can run `omgmt` from any directory. If needed, run `gh auth login` first.
 
-### Updating Oreol Ansible Collection
-
-To update the [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) and any other collections listed in `requirements.yml`, run:
-
-```bash
-./collections-update.sh
-```
-
-### Supported Platforms
-`mgmt` currently supports macOS and the following Ubuntu-based Linux distributions:
+## Supported Platforms
+`omgmt` currently supports macOS and the following Ubuntu-based Linux distributions:
 
 - Ubuntu
 - NVIDIA DGX
 
-## Using mgmt
+Additional Linux distributions may work but are not officially validated yet.
 
-Use `ansible-play.sh` to run playbooks from [Oreol Ansible Collection](https://github.com/oreolag/ansible-collection) or your own playbooks. It takes a playbook name, an inventory group from `hosts`, and an optional comma-separated list of control flags:
+### How it Works
+Oreol Management, or `omgmt`, combines the Oreol Ansible Collection with your cluster’s inventory and configuration to run management playbooks across your infrastructure. You can extend it with your own playbooks to meet your cluster’s needs. For clusters running [Oreol CLI,](https://github.com/oreolag/cli) `omgmt` also manages its installation and configuration, complementing the CLI with centralized administration.
 
-```bash
-./ansible-play.sh <playbook> <inventory_group> [flag1,flag2,flag3]
-```
-
-### Adding your own playbooks
-
-Use `playbook-add.sh` to create your own playbook and matching role from the templates:
-
-```bash
-./playbook-add.sh <playbook>
-```
-
-This creates `playbooks/<playbook>.yml` and `roles/<playbook>/`. Names already used locally or by the collection are rejected. To delete a local playbook and its matching role, run `./playbook-delete.sh <playbook>`.
-
-### Tab completion
-
-`ansible-play.sh` supports Tab completion for local and collection playbook names, and inventory groups from `hosts`. Open a new Bash or Zsh session after installation to enable it.
-
-## Examples
-
-### Verifying your installation
-
-From your administration repository, run the test playbook on the local server:
-
-```bash
-./ansible-play.sh test local
-```
-
-### Running a playbook
-
-Edit `hosts` to define your inventory groups and their servers. For example, if you create a group named `minix`, run:
-
-```bash
-./ansible-play.sh passwordless_sudo_groupadd minix
-```
-
-This configures passwordless sudo for the users specified in `group_vars/all/users.yml` on servers in the `minix` group.
-
-![](examples.gif)
+<!-- ![](examples.gif) -->
 
 ## Citation
 
 [![ACM](https://img.shields.io/badge/ACM-10.1145%2F3805700-green)](https://doi.org/10.1145/3805700)
 
-If you use `mgmt` in your research, development, or publications, please cite the following reference:
+If you use `omgmt` in your research, development, or publications, please cite the following reference:
 
 ```bibtex
 @article{moya2026hacc,
