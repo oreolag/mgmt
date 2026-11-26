@@ -50,6 +50,8 @@ Additional Linux distributions may work but are not officially validated yet.
 ## How it Works
 Oreol Management, or `omgmt`, combines the Oreol Ansible Collection with your cluster’s inventory and configuration to run management playbooks across your infrastructure. You can extend it with your own playbooks to meet your cluster’s needs. For clusters running [Oreol CLI,](https://github.com/oreolag/cli) `omgmt` also manages its installation and configuration, complementing the CLI with centralized administration. Click [here](https://oreolag.github.io/docs/mgmt/how-it-works/) to learn more.
 
+## Examples
+
 ### Installing `odev`
 Once you have defined your cluster and configured its inventory, install `odev` on all hosts with:
 
@@ -73,7 +75,7 @@ omgmt run playbook --name odev_storage_mount --cluster tailnet_de_javier --hosts
 [![ACM](https://img.shields.io/badge/ACM-10.1145%2F3805700-green)](https://doi.org/10.1145/3805700)
 
 <!-- docs:mgmt_readme_supported_citation:start -->
-If you use `omgmt` in your research, development, or publications, please cite the following reference:
+If you use `omgmt` in your research, development, or publications, please cite the following references:
 
 ```bibtex
 @misc{moya2026omgmt,
