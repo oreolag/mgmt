@@ -48,7 +48,7 @@ Additional Linux distributions may work but are not officially validated yet.
 
 <!-- docs:mgmt_readme_supported_how_it_works:start -->
 ## How it Works
-Oreol Management, or `omgmt`, combines the Oreol Ansible Collection with your cluster’s inventory and configuration to run management playbooks across your infrastructure. You can extend it with your own playbooks to meet your cluster’s needs. For clusters running [Oreol CLI,](https://github.com/oreolag/cli) `omgmt` also manages its installation and configuration, complementing the CLI with centralized administration.
+Oreol Management, or `omgmt`, combines the Oreol Ansible Collection with your cluster’s inventory and configuration to run management playbooks across your infrastructure. You can extend it with your own playbooks to meet your cluster’s needs. For clusters running [Oreol CLI,](https://github.com/oreolag/cli) `omgmt` also manages its installation and configuration, complementing the CLI with centralized administration. Click [here](https://oreolag.github.io/docs/mgmt/how-it-works/) to learn more.
 
 ### Installing `odev`
 Once you have defined your cluster and configured its inventory, install `odev` on all hosts with:
