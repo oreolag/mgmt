@@ -17,10 +17,15 @@
   </p>
 </h1>
 
-`omgmt` simplifies software installation and low-level system configuration across your Oreol clusters and remote servers. Built on the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) it brings together your inventory, variables, and configuration management database (CMDB).
+<!-- docs:mgmt_readme_intro:start -->
+Oreol Management, or `omgmt`, is a command-line toolkit that helps you set up, configure, and maintain your Oreol cluster from your terminal or scripts.
+
+Built on the [Oreol Ansible Collection,](https://github.com/oreolag/ansible-collection) it brings together your inventory, variables, and configuration management database (CMDB).
 
 For Oreol-managed clusters, Oreol provides a customized `omgmt` repository for co-managing your infrastructure under your management agreement. For independently managed clusters and remote servers, follow the installation instructions below to get started.
+<!-- docs:mgmt_readme_intro:end -->
 
+<!-- docs:mgmt_readme_installation:start -->
 ## Installation
 Run the following command from the directory where you want to keep `my_oreol_mgmt` (see [Supported Platforms](#supported-platforms)):
 
@@ -29,7 +34,9 @@ curl -H 'Cache-Control: no-cache' -fsSL https://oreol.ch/mgmt/install.sh | sudo 
 ```
 
 The installer checks out your GitHub repository in `./my_oreol_mgmt` and saves its path so you can run `omgmt` from any directory. If needed, run `gh auth login` first.
+<!-- docs:mgmt_readme_installation:end -->
 
+<!-- docs:mgmt_readme_supported_platforms:start -->
 ## Supported Platforms
 `omgmt` currently supports macOS and the following Ubuntu-based Linux distributions:
 
@@ -37,9 +44,19 @@ The installer checks out your GitHub repository in `./my_oreol_mgmt` and saves i
 - NVIDIA DGX
 
 Additional Linux distributions may work but are not officially validated yet.
+<!-- docs:mgmt_readme_supported_platforms:end -->
 
-### How it Works
+<!-- docs:mgmt_readme_supported_how_it_works:start -->
+## How it Works
 Oreol Management, or `omgmt`, combines the Oreol Ansible Collection with your cluster’s inventory and configuration to run management playbooks across your infrastructure. You can extend it with your own playbooks to meet your cluster’s needs. For clusters running [Oreol CLI,](https://github.com/oreolag/cli) `omgmt` also manages its installation and configuration, complementing the CLI with centralized administration.
+
+### Installing `odev`
+Once you have defined your cluster and configured its inventory, install `odev` on all hosts with:
+
+```bash
+omgmt run playbook --cluster my_cluster --hosts all --name odev_install
+```
+<!-- docs:mgmt_readme_supported_how_it_works:end -->
 
 <!-- ![](examples.gif) -->
 
@@ -47,6 +64,7 @@ Oreol Management, or `omgmt`, combines the Oreol Ansible Collection with your cl
 
 [![ACM](https://img.shields.io/badge/ACM-10.1145%2F3805700-green)](https://doi.org/10.1145/3805700)
 
+<!-- docs:mgmt_readme_supported_citation:start -->
 If you use `omgmt` in your research, development, or publications, please cite the following reference:
 
 ```bibtex
@@ -59,3 +77,4 @@ If you use `omgmt` in your research, development, or publications, please cite t
   url       = {https://doi.org/10.1145/3805700}
 }
 ```
+<!-- docs:mgmt_readme_supported_citation:end -->
