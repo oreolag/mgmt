@@ -56,9 +56,16 @@ Once you have defined your cluster and configured its inventory, install `odev` 
 ```bash
 omgmt run playbook --name odev_install --cluster tailnet_de_javier --hosts all
 ```
+
+### Insfrastructure Management
+Run management playbooks on selected hosts. For example, mount the configured storage on your development servers:
+
+```bash
+omgmt run playbook --name odev_storage_mount --cluster tailnet_de_javier --hosts odev_development_servers
+```
 <!-- docs:mgmt_readme_supported_how_it_works:end -->
 
-<!-- ![](examples.gif) -->
+![](examples_2.gif)
 
 ## Citation
 
