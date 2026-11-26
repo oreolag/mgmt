@@ -54,7 +54,7 @@ Oreol Management, or `omgmt`, combines the Oreol Ansible Collection with your cl
 Once you have defined your cluster and configured its inventory, install `odev` on all hosts with:
 
 ```bash
-omgmt run playbook --cluster my_cluster --hosts all --name odev_install
+omgmt run playbook --name odev_install --cluster tailnet_de_javier --hosts all
 ```
 <!-- docs:mgmt_readme_supported_how_it_works:end -->
 
