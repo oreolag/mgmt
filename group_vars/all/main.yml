@@ -12,7 +12,9 @@ banner:
 
 # CLI
 cli:
-  local_path: "{{ lookup('ansible.builtin.file', inventory_dir ~ '/CLI_LOCAL_PATH') | trim }}"
+  # Local CLI checkout on the computer running omgmt, used by odev_install_local.
+  # Example: /Users/javier/src/github.com/oreolag/cli
+  local_path: ""
 
 # CMDB
 cmdb:
