@@ -113,7 +113,7 @@ for name in sorted(names):
               if [[ "${COMP_WORDS[1]}" == delete ]]; then
                 [[ $candidate != cli_install ]] || continue
               else
-                if [[ ! -f "$workspace/playbooks/$candidate.yml" && ! -f "$workspace/playbooks/$candidate.yaml" ]]; then
+                if [[ $candidate != odev_install_local && ! -f "$workspace/playbooks/$candidate.yml" && ! -f "$workspace/playbooks/$candidate.yaml" ]]; then
                   [[ $candidate =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] || continue
                   [[ -f "$collection_playbooks/$candidate.yml" || -f "$collection_playbooks/$candidate.yaml" ]] || continue
                 fi
@@ -127,6 +127,7 @@ for name in sorted(names):
                   find "$workspace/roles" -mindepth 1 -maxdepth 1 -type d 2>/dev/null |
                     sed 's|.*/||'
                 else
+                  printf '%s\n' odev_install_local
                   find "$collection_playbooks" -mindepth 1 -maxdepth 1 \( -type f -o -type l \) 2>/dev/null |
                     sed -nE 's|.*/([^/]+)\.ya?ml$|\1|p'
                 fi
