@@ -25,3 +25,7 @@ tailscale:
   # Fill in your own tailnet ID and DNS name before running Tailscale tasks.
   tailnet_id: ""
   tailnet_dns_name: ""
+  # Replace this example with your actual Ansible Vault-encrypted auth key.
+  # auth_key: !vault |
+  #   $ANSIBLE_VAULT;1.1;AES256
+  #   61303030626461356233343563633..........................................
