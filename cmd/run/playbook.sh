@@ -84,22 +84,6 @@ if [[ ! -f "$inventory" ]]; then
   exit 1
 fi
 
-# check if the playbook exists
-playbook="$workspace/playbooks/$name.yml"
-if [[ ! -f "$playbook" ]]; then
-  playbook="$workspace/playbooks/$name.yaml"
-fi
-if [[ "$name" == oreol.mgmt.* || ! -f "$playbook" ]]; then
-  collection_name="${name#oreol.mgmt.}"
-  collection_name="${collection_name//-/_}"
-  collection_playbook="$software/collections/ansible_collections/oreol/mgmt/playbooks/$collection_name"
-  if [[ ! -f "$collection_playbook.yml" && ! -f "$collection_playbook.yaml" ]]; then
-    python3 "$software/src/odev_messages.py" --error playbook_not_found -- "$name"
-    exit 1
-  fi
-  playbook="oreol.mgmt.$collection_name"
-fi
-
 # run the playbook on the selected hosts
 export ANSIBLE_ROLES_PATH="$workspace/roles:${ANSIBLE_ROLES_PATH:-$software/roles:$HOME/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles}"
 args=(--inventory "$inventory")
@@ -111,4 +95,43 @@ if [[ "$vars" != "-" ]]; then
   fi
   args+=(--extra-vars "$vars")
 fi
+# Resolve the development installer directly, before collection lookup.
+if [[ "${name#oreol.mgmt.}" == "odev_install_local" ]]; then
+  cli_local_path="$(python3 "$software/src/cli_local_path_read.py" \
+    "$inventory" "$hosts" "$software/ansible.cfg" "${args[@]}")" || exit 1
+
+  if [[ "$cli_local_path" != /* ]]; then
+    python3 "$software/src/odev_messages.py" --error invalid_value -- \
+      cli.local_path "$cli_local_path" "an absolute local checkout path"
+    exit 1
+  fi
+
+  playbook="$cli_local_path/install.yml"
+  if [[ ! -f "$playbook" ]]; then
+    python3 "$software/src/odev_messages.py" --error file_not_found -- "$playbook"
+    exit 1
+  fi
+
+  cli_vars="$(python3 -c \
+    'import json, sys; print(json.dumps({"cli": {"local_path": sys.argv[1]}}))' \
+    "$cli_local_path")"
+  args+=(--extra-vars "$cli_vars")
+else
+  # check if the playbook exists
+  playbook="$workspace/playbooks/$name.yml"
+  if [[ ! -f "$playbook" ]]; then
+    playbook="$workspace/playbooks/$name.yaml"
+  fi
+  if [[ "$name" == oreol.mgmt.* || ! -f "$playbook" ]]; then
+    collection_name="${name#oreol.mgmt.}"
+    collection_name="${collection_name//-/_}"
+    collection_playbook="$software/collections/ansible_collections/oreol/mgmt/playbooks/$collection_name"
+    if [[ ! -f "$collection_playbook.yml" && ! -f "$collection_playbook.yaml" ]]; then
+      python3 "$software/src/odev_messages.py" --error playbook_not_found -- "$name"
+      exit 1
+    fi
+    playbook="oreol.mgmt.$collection_name"
+  fi
+fi
+
 exec "$software/ansible-play.sh" "$playbook" "$hosts" "${args[@]}"
